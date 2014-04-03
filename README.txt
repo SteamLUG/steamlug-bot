@@ -7,6 +7,8 @@ FAQ
 
 ===[ FEATURES ]================================================================
 
+Checks for (and displays) new Steam group RSS feed entries.
+
 Gives title information about URLs.
 
 Checks for (and displays) new Tweets.

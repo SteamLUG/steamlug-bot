@@ -7,9 +7,11 @@
 		$arTweets = GetTweetsArray ($sName, 10);
 		TweetsToMySQL ($arTweets);
 	}
-
-	/*** We will also poll for XML data in the future. ***/
-	/*** http://steamcommunity.com/groups/steamlug/rss/ ***/
+	foreach ($GLOBALS['steam_groups'] as $sGroup)
+	{
+		$arNews = GetGroupNews ($sGroup);
+		NewsToMySQL ($arNews, $sGroup);
+	}
 
 	mysqli_close ($GLOBALS['link']);
 ?>

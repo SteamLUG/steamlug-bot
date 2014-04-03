@@ -112,6 +112,47 @@ function CheckTweets ()
 	}
 }
 /***********************************************/
+function MaxNewsId ()
+/***********************************************/
+{
+	$query = "SELECT MAX(news_id) AS max FROM `news`;";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$row = mysqli_fetch_assoc ($result);
+
+	return ($row['max']);
+}
+/***********************************************/
+function CheckNews ()
+/***********************************************/
+{
+	$iLastNewsMentioned = GetSetting ('last_news_mentioned');
+	if ($iLastNewsMentioned == 0)
+	{
+		SetSetting ('last_news_mentioned', MaxNewsId());
+	} else {
+		$query = "SELECT * FROM `news` WHERE (news_id > " .
+			$iLastNewsMentioned . ");";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if (mysqli_num_rows ($result) > 0)
+		{
+			while ($row = mysqli_fetch_assoc ($result))
+			{
+				$sText = $row['news_text'];
+				if (strlen ($sText) > $GLOBALS['maxnews'])
+				{
+					$sText = substr ($sText, 0, $GLOBALS['maxnews']) . '...';
+				}
+					Say ($GLOBALS['channel'], ColorThis ('news') .
+						' (by ' . $row['news_group'] . ') [' . $row['news_title'] .
+						'] ' . $sText . ' (' .
+						$row['news_date'] . ' - ' . $row['news_link'] . ')');
+				$lastid = $row['news_id'];
+			}
+			SetSetting ('last_news_mentioned', $lastid);
+		}
+	}
+}
+/***********************************************/
 function ExtractURLInfo ($sRecipient, $sSaid)
 /***********************************************/
 {
@@ -146,7 +187,7 @@ function LastTweets ($sRecipient, $arTweets)
 	foreach ($arTweets as $key=>$value)
 	{
 		$tweet_id = $value['id_str'];
-		$tweet_date = date ('Y-m-d H:i',
+		$tweet_date = date ('Y-m-d H:i:s',
 			strtotime ($value['created_at'] . 'UTC'));
 		$tweet_text = $value['text'];
 		$tweet_user = $value['user']['screen_name'];
@@ -347,6 +388,7 @@ do {
 			{
 				$oldtime = $currenttime;
 				CheckTweets();
+				CheckNews();
 			}
 		}
 

@@ -95,7 +95,8 @@ function TweetsToMySQL ($arTweets)
 	foreach ($arTweets as $key=>$value)
 	{
 		$tweet_id = $value['id_str'];
-		$tweet_date = date ('Y-m-d H:i', strtotime ($value['created_at'] . 'UTC'));
+		$tweet_date = date ('Y-m-d H:i:s',
+			strtotime ($value['created_at'] . 'UTC'));
 		$tweet_text = $value['text'];
 		$tweet_text = mysqli_real_escape_string ($GLOBALS['link'], $tweet_text);
 		$tweet_user = $value['user']['screen_name'];
@@ -153,6 +154,62 @@ function Wikipedia ($sSearch)
 		$arWiki['rest'] = $sRest;
 	} else { $arWiki = FALSE; }
 	return ($arWiki);
+}
+/***********************************************/
+function GetGroupNews ($sGroup)
+/***********************************************/
+{
+	ini_set ('user_agent', $GLOBALS['useragent']);
+	$xmlXML = simplexml_load_file ('http://steamcommunity.com/groups/' .
+		$sGroup . '/rss/', NULL, LIBXML_NOCDATA);
+	if ($xmlXML === FALSE)
+	{
+		print ('[ WARN ] Could not retrieve XML data!' . "\n");
+	}
+	$arXML = json_decode (json_encode ((array)$xmlXML), TRUE);
+
+	return ($arXML['channel']['item']);
+}
+/***********************************************/
+function NewsToMySQL ($arNews, $sGroup)
+/***********************************************/
+{
+	foreach ($arNews as $key=>$value)
+	{
+		$sTitle = (string)$value['title'];
+
+		$sText = (string)$value['description'];
+		$sText = html_entity_decode (strip_tags ($sText), ENT_QUOTES, 'utf-8');
+		$sText = preg_replace ('/\r|\n/', ' ', $sText);
+		$sText = preg_replace ('/\s+/', ' ', $sText);
+		$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
+
+		$sLink = (string)$value['link'];
+		if ($sLink != (string)$value['guid'])
+		{
+			print ('[ WARN ] Apparently, link and guid are different!' . "\n");
+		}
+
+		$iDateTime = strtotime ((string)$value['pubDate']);
+		$sDateTime = date ('Y-m-d H:i:s', $iDateTime);
+
+		/*** Prevent duplicates. Here we do not use INSERT IGNORE ***/
+		/*** because of the AUTO_INCREMENT column. ***/
+		$query_found = "SELECT COUNT(*) AS found FROM `news` WHERE" .
+			" (news_link='" . $sLink . "');";
+		$result_found = mysqli_query ($GLOBALS['link'], $query_found);
+		$row_found = mysqli_fetch_assoc ($result_found);
+		if ($row_found['found'] == 0)
+		{
+			$query = "INSERT INTO `news` VALUES (NULL, '" .
+				$sGroup . "', '" .
+				$sTitle . "', '" .
+				$sText . "', '" .
+				$sLink . "', '" .
+				$sDateTime . "');";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+		}
+	}
 }
 /***********************************************/
 
