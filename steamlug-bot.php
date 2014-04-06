@@ -286,6 +286,7 @@ function GetURL ($sUrl)
 	curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
 	curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 	curl_setopt ($ch, CURLOPT_URL, $sUrl);
+	curl_setopt ($ch, CURLOPT_RANGE, '0-1048576'); /*** 1M max. ***/
 	$sData = curl_exec ($ch);
 	curl_close ($ch);
 
