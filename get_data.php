@@ -7,11 +7,15 @@
 		$arTweets = GetTweetsArray ($sName, 10);
 		TweetsToMySQL ($arTweets);
 	}
+/***
 	foreach ($GLOBALS['steam_groups'] as $sGroup)
 	{
 		$arNews = GetGroupNews ($sGroup);
 		NewsToMySQL ($arNews, $sGroup);
 	}
+***/
+	$arEvents = GetEvents();
+	EventsToMySQL ($arEvents);
 
 	mysqli_close ($GLOBALS['link']);
 ?>

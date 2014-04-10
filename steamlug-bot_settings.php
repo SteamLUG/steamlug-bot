@@ -30,6 +30,7 @@
 		' rv:28.0) Gecko/20100101 Firefox/28.0';
 	$GLOBALS['maxtitle'] = 200;
 	$GLOBALS['maxnews'] = 200;
+	$GLOBALS['maxevent'] = 200;
 	$GLOBALS['ignore'] = array ('SteamDB', 'travis-ci', 'gitmek');
 	$GLOBALS['link'] = FALSE;
 	$GLOBALS['socket'] = FALSE;

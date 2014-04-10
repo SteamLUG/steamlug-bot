@@ -177,6 +177,7 @@ function NewsToMySQL ($arNews, $sGroup)
 	foreach ($arNews as $key=>$value)
 	{
 		$sTitle = (string)$value['title'];
+		$sTitle = mysqli_real_escape_string ($GLOBALS['link'], $sTitle);
 
 		$sText = (string)$value['description'];
 		$sText = html_entity_decode (strip_tags ($sText), ENT_QUOTES, 'utf-8');
@@ -185,10 +186,15 @@ function NewsToMySQL ($arNews, $sGroup)
 		$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
 
 		$sLink = (string)$value['link'];
-		if ($sLink != (string)$value['guid'])
+/***
+		$sGuid = (string)$value['guid'];
+		if ($sLink != $sGuid)
 		{
 			print ('[ WARN ] Apparently, link and guid are different!' . "\n");
+			print ($sLink . "\n");
+			print ($sGuid . "\n");
 		}
+***/
 
 		$iDateTime = strtotime ((string)$value['pubDate']);
 		$sDateTime = date ('Y-m-d H:i:s', $iDateTime);
@@ -203,6 +209,70 @@ function NewsToMySQL ($arNews, $sGroup)
 		{
 			$query = "INSERT INTO `news` VALUES (NULL, '" .
 				$sGroup . "', '" .
+				$sTitle . "', '" .
+				$sText . "', '" .
+				$sLink . "', '" .
+				$sDateTime . "');";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+		}
+	}
+}
+/***********************************************/
+function GetEvents ()
+/***********************************************/
+{
+	ini_set ('user_agent', $GLOBALS['useragent']);
+	$xmlXML = simplexml_load_file ('https://steamlug.org/feed/events',
+		NULL, LIBXML_NOCDATA);
+	if ($xmlXML === FALSE)
+	{
+		print ('[ WARN ] Could not retrieve XML data!' . "\n");
+	}
+	$arXML = json_decode (json_encode ((array)$xmlXML), TRUE);
+
+	return ($arXML['channel']['item']);
+}
+/***********************************************/
+function EventsToMySQL ($arEvents)
+/***********************************************/
+{
+	foreach ($arEvents as $key=>$value)
+	{
+		$sTitle = (string)$value['title'];
+		$sTitle = mysqli_real_escape_string ($GLOBALS['link'], $sTitle);
+
+		$sText = (string)$value['description'];
+		$sText = html_entity_decode (strip_tags ($sText), ENT_QUOTES, 'utf-8');
+		$sText = preg_replace ('/\r|\n/', ' ', $sText);
+		$sText = preg_replace ('/\s+/', ' ', $sText);
+		$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
+
+		$sLink = (string)$value['link'];
+/***
+		$sGuid = (string)$value['guid'];
+		if ($sLink != $sGuid)
+		{
+			print ('[ WARN ] Apparently, link and guid are different!' . "\n");
+			print ($sLink . "\n");
+			print ($sGuid . "\n");
+		}
+***/
+
+		$iDateTime = strtotime ((string)$value['pubDate']);
+		$sDateTime = date ('Y-m-d H:i:s', $iDateTime);
+
+		$sCategory = (string)$value['category'];
+
+		/*** Prevent duplicates. Here we do not use INSERT IGNORE ***/
+		/*** because of the AUTO_INCREMENT column. ***/
+		$query_found = "SELECT COUNT(*) AS found FROM `events` WHERE" .
+			" (event_link='" . $sLink . "');";
+		$result_found = mysqli_query ($GLOBALS['link'], $query_found);
+		$row_found = mysqli_fetch_assoc ($result_found);
+		if ($row_found['found'] == 0)
+		{
+			$query = "INSERT INTO `events` VALUES (NULL, '" .
+				$sCategory . "', '" .
 				$sTitle . "', '" .
 				$sText . "', '" .
 				$sLink . "', '" .

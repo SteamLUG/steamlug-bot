@@ -7,7 +7,9 @@ FAQ
 
 ===[ FEATURES ]================================================================
 
-Checks for (and displays) new Steam group RSS feed entries.
+[disabled] Checks for (and displays) new Steam group RSS feed entries.
+
+Checks for (and displays) new SteamLUG RSS feed entries.
 
 Gives title information about URLs.
 
