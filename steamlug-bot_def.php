@@ -2,6 +2,8 @@
 	error_reporting (E_ALL);
 	ini_set ('display_errors', '1');
 	date_default_timezone_set ('UTC');
+	ini_set ('mbstring.internal_encoding', 'UTF-8');
+	mb_internal_encoding ('UTF-8');
 
 /***********************************************/
 function ConnectToMySQL ()

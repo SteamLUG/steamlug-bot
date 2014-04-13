@@ -275,7 +275,7 @@ function GetTitle ($sURL)
 {
 	$sHTML = GetURL ($sURL);
 	$doc = new DOMDocument();
-	@$doc->loadHTML($sHTML);
+	@$doc->loadHTML(mb_convert_encoding($sHTML, 'HTML-ENTITIES', 'UTF-8'));
 	$nodes = $doc->getElementsByTagName('title');
 	if ($nodes->length != 0)
 	{
