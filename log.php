@@ -37,7 +37,7 @@ print ('
 		while ($row = mysqli_fetch_assoc ($result))
 		{
 			$sCom = $row['log_command'];
-			$sGrey = array ('QUIT', 'JOIN', 'NICK');
+			$sGrey = array ('QUIT', 'JOIN', 'NICK', 'PART', 'KICK', 'MODE');
 			print ('<div style="background-color:#');
 			if ($row['log_nick'] == $GLOBALS['botname'])
 			{
@@ -59,6 +59,8 @@ print ('
 			$sText = htmlspecialchars ($row['log_text']);
 			if ($row['log_person'] != '')
 				{ $sText = $sText . ' ' . $row['log_person']; }
+			$sText = str_replace (chr(1),
+				'<span style="color:#fff;">[CTCP]</span>', $sText);
 			print ('<span class="log_column" style="width:700px;">' .
 				$sText . '</span>');
 			print ('<span style="display:block; clear:both;"></span>');

@@ -268,6 +268,7 @@ function Say ($sTo, $sSay)
 	}
 	fputs ($GLOBALS['socket'], $sType . ' ' . $sTo . ' :' . $sSay . "\r" . "\n");
 	LogLine ($GLOBALS['botname'], '', '', $sType, $sTo, '', $sSay);
+	$GLOBALS['idlesince'] = time();
 }
 /***********************************************/
 function GetTitle ($sURL)
@@ -515,6 +516,44 @@ do {
 									} else {
 										Say ($sRecipient, 'Usage: !w <Wikipedia search>');
 									}
+									break;
+								case chr(1) . 'VERSION' . chr(1):
+									Say ($sRecipient, $GLOBALS['botdesc'] .
+										' ' . $GLOBALS['botversion']);
+									break;
+								case chr(1) . 'PING' . chr(1):
+									Say ($sRecipient, 'ERRMSG Syntax is: PING <(milli)seconds>');
+									break;
+								case chr(1) . 'PING':
+									$sTheirTime = substr ($sSaid, 6, -1);
+									switch (strlen ($sTheirTime))
+									{
+										case 10: $sOurTime = time(); break; /*** Seconds. ***/
+										case 13: $sOurTime = round (microtime (TRUE)
+											* 1000); break; /*** Milliseconds. ***/
+										default: $sOurTime = '?'; break; /*** Unknown. ***/
+									}
+									/*** Use PING here, not PONG. ***/
+									Say ($sRecipient, 'PING ' . $sOurTime);
+									break;
+								case chr(1) . 'SOURCE' . chr(1):
+								case chr(1) . 'URL' . chr(1):
+									Say ($sRecipient, $GLOBALS['botsource']);
+									break;
+								case chr(1) . 'FINGER' . chr(1):
+									$iIdleFor = time() - $GLOBALS['idlesince'];
+									Say ($sRecipient, $GLOBALS['botdesc'] .
+										' ' . $GLOBALS['botversion'] . ' idle for ' .
+										$iIdleFor . ' second(s).');
+									break;
+								case chr(1) . 'TIME' . chr(1):
+									$sDate = date ('D d M Y H:i:s e');
+									Say ($sRecipient, $sDate);
+									break;
+								case chr(1) . 'CLIENTINFO' . chr(1):
+								case chr(1) . 'USERINFO' . chr(1):
+									Say ($sRecipient, 'VERSION, PING <(milli)seconds>,' .
+										' SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO');
 									break;
 							}
 						}
