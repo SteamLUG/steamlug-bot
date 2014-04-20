@@ -16,9 +16,11 @@ Gives title information about URLs.
 Checks for (and displays) new Tweets.
 
 Replies to:
-!ping [text]
-!t <Twitter name> [1-3]
-!w <Wikipedia search>
+- !ping [text]
+- !t <Twitter name> [1-3]
+- !w <Wikipedia search>
+- CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
+- Private chat: HELP, INFO
 
 ===[ LICENSE ]=================================================================
 

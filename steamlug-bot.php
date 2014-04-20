@@ -267,7 +267,7 @@ function Say ($sTo, $sSay)
 		$sType = 'NOTICE'; /*** To a person. ***/
 	}
 	fputs ($GLOBALS['socket'], $sType . ' ' . $sTo . ' :' . $sSay . "\r" . "\n");
-	LogLine ($GLOBALS['botname'], '', '', $sType, $sTo, '', $sSay);
+	LogLine ($GLOBALS['botname'], '', '', $sType, $sTo, '', 1, $sSay);
 	$GLOBALS['idlesince'] = time();
 }
 /***********************************************/
@@ -352,7 +352,7 @@ function GetPart ($sString, $iPart)
 }
 /***********************************************/
 function LogLine ($sNick, $sIdent, $sHost, $sCommand,
-	$sChannel, $sPerson, $sText)
+	$sChannel, $sPerson, $iIdentified, $sText)
 /***********************************************/
 {
 	$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
@@ -364,6 +364,7 @@ function LogLine ($sNick, $sIdent, $sHost, $sCommand,
 		$sCommand . "', '" .
 		$sChannel . "', '" .
 		$sPerson . "', '" .
+		$iIdentified . "', '" .
 		$sText . "', '" .
 		$sDateTime . "');";
 	$result = mysqli_query ($GLOBALS['link'], $query);
@@ -377,6 +378,18 @@ function DateTime ()
 /***********************************************/
 {
 	return (date ('Y-m-d H:i:s', time()));
+}
+/***********************************************/
+function CapReq ()
+/***********************************************/
+{
+	Write ('CAP REQ IDENTIFY-MSG');
+	/*** For security reasons, we MUST have acknowledgement. ***/
+	do {
+		$sString = fgets ($GLOBALS['socket'], $GLOBALS['maxlinelength']);
+		if ($sString != FALSE) { print ('[ WAIT ] ' . $sString); }
+	} while (strpos ($sString, 'CAP ' . $GLOBALS['botname'] .
+		' ACK :identify-msg') === FALSE);
 }
 /***********************************************/
 
@@ -394,6 +407,7 @@ $oldtime = time();
 
 do {
 	$iJoined = 0;
+	$iNoCloak = 0;
 	Connect();
 	Nick ($GLOBALS['botname']);
 	User ($GLOBALS['botname']);
@@ -436,6 +450,9 @@ do {
 				{
 					Say ('NickServ', 'IDENTIFY ' . $GLOBALS['password']);
 				}
+				if ($GLOBALS['hascloak'] == 0) { $iNoCloak = 1; }
+			} else if (($iJoined == 0) && (($ex[1] == '396') || ($iNoCloak == 1))) {
+				CapReq();
 				Write ('JOIN ' . $GLOBALS['channel']);
 				$iJoined = 1;
 			} else if ($ex[0] == 'PING') {
@@ -456,9 +473,18 @@ do {
 						} else {
 							$sRecipient = $ex[2];
 						}
-						$sSaid = substr (GetPart ($sString, 4), 1);
+						$sSaid = substr (GetPart ($sString, 4), 2);
+						switch (substr (GetPart ($sString, 4), 1, 1))
+						{
+							case '+': $iIdentified = 1; break;
+							case '-': $iIdentified = 0; break;
+							default:
+								$iIdentified = 0; /*** Fallback. ***/
+								print ('[ WARN ] Unknown +/- status: ' . $sString);
+								break;
+						}
 						LogLine ($sNick, $sIdent, $sHost,
-							$ex[1], $sRecipient, '', $sSaid);
+							$ex[1], $sRecipient, '', $iIdentified, $sSaid);
 						if ((!in_array ($sNick, $GLOBALS['ignore'])) &&
 							($ex[1] != 'NOTICE'))
 						{
@@ -555,41 +581,57 @@ do {
 									Say ($sRecipient, 'VERSION, PING <(milli)seconds>,' .
 										' SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO');
 									break;
+								case 'HELP': case 'Help': case 'help':
+								case 'INFO': case 'Info': case 'info':
+									if ($sRecipient[0] != '#')
+									{
+										Say ($sRecipient, 'See README.txt: ' .
+											$GLOBALS['botsource']);
+									}
+									break;
 							}
 						}
 						break;
 					case 'QUIT':
 						$sText = substr (GetPart ($sString, 3), 1);
-						LogLine ($sNick, $sIdent, $sHost, 'QUIT', '', '', $sText);
+						LogLine ($sNick, $sIdent, $sHost, 'QUIT', '', '', 0, $sText);
 						break;
 					case 'JOIN':
 						$sChannel = $ex[2];
-						LogLine ($sNick, $sIdent, $sHost, 'JOIN', $sChannel, '', '');
+						LogLine ($sNick, $sIdent, $sHost, 'JOIN', $sChannel, '', 0, '');
 						break;
 					case 'NICK':
 						$sText = substr (GetPart ($sString, 3), 1);
-						LogLine ($sNick, $sIdent, $sHost, 'NICK', '', '', $sText);
+						LogLine ($sNick, $sIdent, $sHost, 'NICK', '', '', 0, $sText);
 						break;
 					case 'PART':
 						$sChannel = $ex[2];
-						LogLine ($sNick, $sIdent, $sHost, 'PART', $sChannel, '', '');
+						LogLine ($sNick, $sIdent, $sHost, 'PART', $sChannel, '', 0, '');
 						break;
 					case 'KICK':
 						$sChannel = $ex[2];
 						$sNick = $ex[3];
 						$sText = substr (GetPart ($sString, 5), 1);
 						LogLine ($sNick, $sIdent, $sHost, 'KICK',
-							$sChannel, $sNick, $sText);
+							$sChannel, $sNick, 0, $sText);
 						break;
 					case 'MODE':
 						if (substr ($ex[0], 1) != $GLOBALS['botname'])
 						{
 							$sChannel = $ex[2];
-							$sNick = $ex[4];
+							if (isset ($ex[4]))
+								{ $sPerson = $ex[4]; }
+									else { $sPerson = ''; }
 							$sMode = $ex[3];
 							LogLine ($sNick, $sIdent, $sHost, 'MODE',
-								$sChannel, $sNick, $sMode);
+								$sChannel, $sPerson, 0, $sMode);
 						}
+						break;
+					case 'TOPIC':
+						$sChannel = $ex[2];
+						$sTopic = substr (GetPart ($sString, 4), 1);
+						LogLine ($sNick, $sIdent, $sHost, 'TOPIC',
+							$sChannel, '', 0, $sTopic);
 						break;
 					default:
 						print ('[ INFO ] ' . $sString);

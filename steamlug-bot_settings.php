@@ -23,7 +23,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.07';
+	$GLOBALS['botversion'] = '0.08';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['idlesince'] = time();
 	$GLOBALS['twitter_names'] = array ('SteamLUG');
@@ -37,7 +37,7 @@
 	$GLOBALS['ignore'] = array ('SteamDB', 'travis-ci', 'gitmek');
 	$GLOBALS['link'] = FALSE;
 	$GLOBALS['socket'] = FALSE;
-	$GLOBALS['botnametemp'] = '87878787';
+	$GLOBALS['botnametemp'] = 't87878787';
 
 	$GLOBALS['debug'] = 0; /*** Set to 1 when debugging; #botwar. ***/
 
@@ -46,9 +46,11 @@
 		$GLOBALS['botname'] = 'defend';
 		$GLOBALS['password'] = 'SECRET';
 		$GLOBALS['channel'] = '#botwar';
+		$GLOBALS['hascloak'] = 0;
 	} else {
 		$GLOBALS['botname'] = 'steamlug-bot';
 		$GLOBALS['password'] = 'SECRET';
 		$GLOBALS['channel'] = '#steamlug';
+		$GLOBALS['hascloak'] = 1;
 	}
 ?>
