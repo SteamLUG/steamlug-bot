@@ -23,7 +23,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.09';
+	$GLOBALS['botversion'] = '0.10';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['idlesince'] = time();
 	$GLOBALS['twitter_names'] = array ('SteamLUG');

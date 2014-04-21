@@ -771,7 +771,7 @@ do {
 											{
 												if ($iIdentified == 1)
 												{
-													$sResult = SetCustomURL ($sNick, $exsay[2]);
+													$sResult = SetCustomURL ($sNick, rtrim ($exsay[2]));
 													switch ($sResult)
 													{
 														case 'failed':
