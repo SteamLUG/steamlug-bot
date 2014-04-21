@@ -16,6 +16,7 @@ Gives title information about URLs.
 Checks for (and displays) new Tweets.
 
 Replies to:
+- !s <IRC nick> | !s set <Steam customURL /id/>
 - !ping [text]
 - !t <Twitter name> [1-3]
 - !w <Wikipedia search>

@@ -203,11 +203,7 @@ function NewsToMySQL ($arNews, $sGroup)
 
 		/*** Prevent duplicates. Here we do not use INSERT IGNORE ***/
 		/*** because of the AUTO_INCREMENT column. ***/
-		$query_found = "SELECT COUNT(*) AS found FROM `news` WHERE" .
-			" (news_link='" . $sLink . "');";
-		$result_found = mysqli_query ($GLOBALS['link'], $query_found);
-		$row_found = mysqli_fetch_assoc ($result_found);
-		if ($row_found['found'] == 0)
+		if (Found ('news', 'news_link', $sLink) == FALSE)
 		{
 			$query = "INSERT INTO `news` VALUES (NULL, '" .
 				$sGroup . "', '" .
@@ -267,11 +263,7 @@ function EventsToMySQL ($arEvents)
 
 		/*** Prevent duplicates. Here we do not use INSERT IGNORE ***/
 		/*** because of the AUTO_INCREMENT column. ***/
-		$query_found = "SELECT COUNT(*) AS found FROM `events` WHERE" .
-			" (event_link='" . $sLink . "');";
-		$result_found = mysqli_query ($GLOBALS['link'], $query_found);
-		$row_found = mysqli_fetch_assoc ($result_found);
-		if ($row_found['found'] == 0)
+		if (Found ('events', 'event_link', $sLink) == FALSE)
 		{
 			$query = "INSERT INTO `events` VALUES (NULL, '" .
 				$sCategory . "', '" .
@@ -282,6 +274,18 @@ function EventsToMySQL ($arEvents)
 			$result = mysqli_query ($GLOBALS['link'], $query);
 		}
 	}
+}
+/***********************************************/
+function Found ($sTable, $sColumn, $sValue)
+/***********************************************/
+{
+	$query_found = "SELECT COUNT(*) AS found FROM `" . $sTable . "` WHERE" .
+		" (" . $sColumn . "='" . $sValue . "');";
+	$result_found = mysqli_query ($GLOBALS['link'], $query_found);
+	$row_found = mysqli_fetch_assoc ($result_found);
+	if ($row_found['found'] == 1)
+		{ return (TRUE); }
+			else { return (FALSE); }
 }
 /***********************************************/
 

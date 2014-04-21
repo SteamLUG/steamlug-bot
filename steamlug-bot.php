@@ -356,6 +356,7 @@ function LogLine ($sNick, $sIdent, $sHost, $sCommand,
 /***********************************************/
 {
 	$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
+	$sIdent = mysqli_real_escape_string ($GLOBALS['link'], $sIdent);
 	$sDateTime = DateTime();
 	$query = "INSERT INTO `log` VALUES (NULL, '" .
 		$sNick . "', '" .
@@ -383,13 +384,178 @@ function DateTime ()
 function CapReq ()
 /***********************************************/
 {
-	Write ('CAP REQ IDENTIFY-MSG');
+	Write ('CAP REQ identify-msg');
 	/*** For security reasons, we MUST have acknowledgement. ***/
 	do {
 		$sString = fgets ($GLOBALS['socket'], $GLOBALS['maxlinelength']);
 		if ($sString != FALSE) { print ('[ WAIT ] ' . $sString); }
 	} while (strpos ($sString, 'CAP ' . $GLOBALS['botname'] .
 		' ACK :identify-msg') === FALSE);
+}
+/***********************************************/
+function SetCustomURL ($sNick, $sCustomURL)
+/***********************************************/
+{
+	if ($sCustomURL == '"none"') { $sCustomURL = 'none'; }
+	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+	$sCustomURLE = mysqli_real_escape_string ($GLOBALS['link'], $sCustomURL);
+	$sReturn = 'failed';
+
+	if (Found ('customurl', 'customurl_nick',
+		$sNickE) == FALSE) /*** Insert. ***/
+	{
+		$query = "INSERT INTO `customurl` VALUES (NULL, '" .
+			$sNickE . "', '" .
+			$sCustomURLE . "');";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if ($result == FALSE)
+		{
+			print ('[ WARN ] This query failed: ' . $query . "\n");
+		} else if (mysqli_affected_rows ($GLOBALS['link']) == 1) {
+			$sReturn = 'insert';
+		}
+	} else { /*** Update. ***/
+		$query = "UPDATE `customurl` SET customurl_url='" . $sCustomURLE .
+			"' WHERE (customurl_nick='" . $sNickE . "');";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if ($result == FALSE)
+		{
+			print ('[ WARN ] This query failed: ' . $query . "\n");
+		} else if (mysqli_affected_rows ($GLOBALS['link']) == 1) {
+			$sReturn = 'update';
+		}
+	}
+
+	return ($sReturn);
+}
+/***********************************************/
+function GetCustomURL ($sNick)
+/***********************************************/
+{
+	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+
+	$query = "SELECT customurl_url FROM `customurl` WHERE (customurl_nick='" .
+		$sNickE . "');";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	if (mysqli_num_rows ($result) > 0)
+	{
+		$row = mysqli_fetch_assoc ($result);
+		$sReturn = $row['customurl_url'];
+	} else {
+		$sReturn = FALSE;
+	}
+
+	return ($sReturn);
+}
+/***********************************************/
+function PlanAskCustomURL ($sNick)
+/***********************************************/
+{
+	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+
+	if (Found ('askcustomurl', 'askcustomurl_nick', $sNickE) == TRUE)
+	{
+		return ('found');
+	} else {
+		$query = "INSERT INTO `askcustomurl` VALUES (NULL, '" .
+			$sNickE . "');";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if ($result == FALSE)
+		{
+			print ('[ WARN ] This query failed: ' . $query . "\n");
+			return (FALSE);
+		} else if (mysqli_affected_rows ($GLOBALS['link']) == 1) {
+			return ('insert');
+		} else {
+			return (FALSE);
+		}
+	}
+}
+/***********************************************/
+function AskCustomURL ($sNick)
+/***********************************************/
+{
+	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+
+	if (Found ('askcustomurl', 'askcustomurl_nick', $sNickE) == TRUE)
+	{
+		foreach ($GLOBALS['folks'] as $sChannel=>$value)
+		{
+			if (isset ($GLOBALS['folks'][$sChannel][$sNick]))
+			{
+				Say ($sChannel, $sNick . ': ' . $GLOBALS['sidrequest']);
+				$query = "DELETE FROM `askcustomurl` WHERE" .
+					" (askcustomurl_nick='" . $sNickE . "');";
+				$result = mysqli_query ($GLOBALS['link'], $query);
+				break;
+			}
+		}
+	}
+}
+/***********************************************/
+function FixString ($sString)
+/***********************************************/
+{
+	return (htmlspecialchars ($sString, ENT_QUOTES));
+}
+/***********************************************/
+function AddUser ($sChannel, $sNick)
+/***********************************************/
+{
+	switch ($sNick[0])
+	{
+		case '@':
+			$GLOBALS['folks'][$sChannel][substr ($sNick, 1)] = '@'; break;
+		case '+':
+			$GLOBALS['folks'][$sChannel][substr ($sNick, 1)] = '+'; break;
+		default:
+			$GLOBALS['folks'][$sChannel][$sNick] = '-'; break;
+	}
+}
+/***********************************************/
+function ChangeUser ($sNickOld, $sNickNew)
+/***********************************************/
+{
+	foreach ($GLOBALS['folks'] as $sChannel=>$value)
+	{
+		if (isset ($GLOBALS['folks'][$sChannel][$sNickOld]))
+		{
+			$GLOBALS['folks'][$sChannel][$sNickNew] =
+				$GLOBALS['folks'][$sChannel][$sNickOld];
+			unset ($GLOBALS['folks'][$sChannel][$sNickOld]);
+		}
+	}
+}
+/***********************************************/
+function RemoveUser ($sChannel, $sNick)
+/***********************************************/
+{
+	if ($sChannel == '')
+	{
+		foreach ($GLOBALS['folks'] as $sChannel=>$value)
+		{
+			if (isset ($GLOBALS['folks'][$sChannel][$sNick]))
+				{ unset ($GLOBALS['folks'][$sChannel][$sNick]); }
+		}
+	} else {
+		if (isset ($GLOBALS['folks'][$sChannel][$sNick]))
+			{ unset ($GLOBALS['folks'][$sChannel][$sNick]); }
+	}
+}
+/***********************************************/
+function ChangeMode ($sChannel, $sNick, $sMode)
+/***********************************************/
+{
+	/*** TODO: We probably need to enable multi-prefix before it is ***/
+	/*** useful to track this. ***/
+}
+/***********************************************/
+function UserInChannel ($sChannel, $sNick)
+/***********************************************/
+{
+	if (isset ($GLOBALS['folks'][$sChannel][$sNick]))
+		{ return (TRUE); }
+			else { return (FALSE); }
 }
 /***********************************************/
 
@@ -435,7 +601,7 @@ do {
 		{
 			if (strstr ($sString, ' ') == FALSE)
 			{
-				print ('[ WARN ] ' . $sString . "\n");
+				print ('[ WARN ] Strange: ' . $sString . "\n");
 			}
 			$ex = explode (' ', $sString);
 			$ex = preg_replace ('/\r|\n/', '', $ex);
@@ -455,6 +621,13 @@ do {
 				CapReq();
 				Write ('JOIN ' . $GLOBALS['channel']);
 				$iJoined = 1;
+			} else if ($ex[1] == '353') { /*** User listing. ***/
+				$sChannel = $ex[4];
+				if (!isset ($GLOBALS['folks'][$sChannel]))
+					{ $GLOBALS['folks'][$sChannel] = array(); }
+				$sUsers = substr (GetPart ($sString, 6), 1);
+				$arUsers = explode (' ', $sUsers);
+				foreach ($arUsers as $sNick) { AddUser ($sChannel, $sNick); }
 			} else if ($ex[0] == 'PING') {
 				Write ('PONG ' . substr ($sString, 5));
 			} else if ($iJoined == 1) {
@@ -589,31 +762,117 @@ do {
 											$GLOBALS['botsource']);
 									}
 									break;
+								case '!s':
+									if (isset ($exsay[1]))
+									{
+										if ($exsay[1] == 'set')
+										{
+											if (isset ($exsay[2]))
+											{
+												if ($iIdentified == 1)
+												{
+													$sResult = SetCustomURL ($sNick, $exsay[2]);
+													switch ($sResult)
+													{
+														case 'failed':
+															$sSay = 'has NOT be added/updated'; break;
+														case 'insert':
+															$sSay = 'has been added'; break;
+														case 'update':
+															$sSay = 'has been updated'; break;
+													}
+													Say ($sRecipient, $sNick .
+														': your Steam customURL /id/ ' . $sSay . '.');
+												} else {
+													Say ($sRecipient, $sNick . ': you are not' .
+														' identified to NickServ. Use "/msg NickServ' .
+														' IDENTIFY [' . $sNick . '] <password>". |' .
+														' Register your nickname with "/msg NickServ' .
+														' REGISTER <password> <email>".');
+												}
+											} else {
+												Say ($sRecipient, $GLOBALS['susage']);
+											}
+										} else {
+											$sTargetUser = FixString ($exsay[1]);
+											$sCustomURL = GetCustomURL ($sTargetUser);
+											switch ($sCustomURL)
+											{
+												case FALSE:
+													if (($sRecipient[0] == '#') &&
+														(UserInChannel ($sRecipient, $sTargetUser)))
+													{
+														Say ($sRecipient, $sTargetUser . ': ' .
+															$GLOBALS['sidrequest']);
+													} else {
+														$sResult = PlanAskCustomURL ($sTargetUser);
+														switch ($sResult)
+														{
+															case 'insert':
+																Say ($sRecipient, 'When I see ' .
+																	$sTargetUser . ' I will ask about that.');
+																break;
+															case 'found':
+																Say ($sRecipient, 'I already have plans to' .
+																	' ask ' . $sTargetUser . ' about that.');
+																break;
+															case FALSE:
+																Say ($sRecipient, 'Please try again later.');
+																break;
+														}
+													}
+													break;
+												case "none":
+													Say ($sRecipient, ColorThis ('steam') . ' Sorry, ' .
+														$sTargetUser .
+														' prefers not to share Steam information.');
+													break;
+												default:
+													Say ($sRecipient, ColorThis ('steam') . ' (' .
+														$sTargetUser . ')' .
+														' http://steamcommunity.com/id/' . $sCustomURL);
+													break;
+											}
+										}
+									} else {
+										Say ($sRecipient, $GLOBALS['susage']);
+									}
+									break;
 							}
 						}
 						break;
 					case 'QUIT':
 						$sText = substr (GetPart ($sString, 3), 1);
+						RemoveUser ('', $sNick);
 						LogLine ($sNick, $sIdent, $sHost, 'QUIT', '', '', 0, $sText);
 						break;
 					case 'JOIN':
-						$sChannel = $ex[2];
-						LogLine ($sNick, $sIdent, $sHost, 'JOIN', $sChannel, '', 0, '');
+						if ($sNick != $GLOBALS['botname']) /*** Or AddUser() fails. ***/
+						{
+							$sChannel = $ex[2];
+							AddUser ($sChannel, $sNick);
+							AskCustomURL ($sNick);
+							LogLine ($sNick, $sIdent, $sHost, 'JOIN', $sChannel, '', 0, '');
+						}
 						break;
 					case 'NICK':
 						$sText = substr (GetPart ($sString, 3), 1);
+						ChangeUser ($sNick, $sText);
+						AskCustomURL ($sText);
 						LogLine ($sNick, $sIdent, $sHost, 'NICK', '', '', 0, $sText);
 						break;
 					case 'PART':
 						$sChannel = $ex[2];
+						RemoveUser ($sChannel, $sNick);
 						LogLine ($sNick, $sIdent, $sHost, 'PART', $sChannel, '', 0, '');
 						break;
 					case 'KICK':
 						$sChannel = $ex[2];
-						$sNick = $ex[3];
+						$sPerson = $ex[3];
 						$sText = substr (GetPart ($sString, 5), 1);
+						RemoveUser ($sChannel, $sPerson);
 						LogLine ($sNick, $sIdent, $sHost, 'KICK',
-							$sChannel, $sNick, 0, $sText);
+							$sChannel, $sPerson, 0, $sText);
 						break;
 					case 'MODE':
 						if (substr ($ex[0], 1) != $GLOBALS['botname'])
@@ -623,6 +882,8 @@ do {
 								{ $sPerson = $ex[4]; }
 									else { $sPerson = ''; }
 							$sMode = $ex[3];
+							if ($sPerson != '')
+								{ ChangeMode ($sChannel, $sPerson, $sMode); }
 							LogLine ($sNick, $sIdent, $sHost, 'MODE',
 								$sChannel, $sPerson, 0, $sMode);
 						}

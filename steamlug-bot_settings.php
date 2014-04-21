@@ -23,7 +23,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.08';
+	$GLOBALS['botversion'] = '0.09';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['idlesince'] = time();
 	$GLOBALS['twitter_names'] = array ('SteamLUG');
@@ -38,6 +38,9 @@
 	$GLOBALS['link'] = FALSE;
 	$GLOBALS['socket'] = FALSE;
 	$GLOBALS['botnametemp'] = 't87878787';
+	$GLOBALS['folks'] = array();
+	$GLOBALS['sidrequest'] = 'Please set your Steam customURL /id/: !s set <Steam customURL /id/> | Use Steam customURL /id/ "none" if you prefer not to share your Steam information.';
+	$GLOBALS['susage'] = 'To get Steam information: !s <IRC nick> | To set your own Steam customURL /id/: !s set <Steam customURL /id/> | Use Steam customURL /id/ "none" if you prefer not to share your Steam information.';
 
 	$GLOBALS['debug'] = 0; /*** Set to 1 when debugging; #botwar. ***/
 
