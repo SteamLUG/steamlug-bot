@@ -288,6 +288,21 @@ function Found ($sTable, $sColumn, $sValue)
 			else { return (FALSE); }
 }
 /***********************************************/
+function GetSteamInfo ($sCustomURL)
+/***********************************************/
+{
+	ini_set ('user_agent', $GLOBALS['useragent']);
+	$xmlXML = simplexml_load_file ('http://steamcommunity.com/id/' .
+		$sCustomURL . '/?xml=1', NULL, LIBXML_NOCDATA);
+	if ($xmlXML === FALSE)
+	{
+		print ('[ WARN ] Could not retrieve XML data!' . "\n");
+	}
+	$arXML = json_decode (json_encode ((array)$xmlXML), TRUE);
+
+	return ($arXML);
+}
+/***********************************************/
 
 	ConnectToMySQL();
 ?>

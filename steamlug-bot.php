@@ -558,6 +558,42 @@ function UserInChannel ($sChannel, $sNick)
 			else { return (FALSE); }
 }
 /***********************************************/
+function GiveSteamInfo ($sRecipient, $sTargetUser, $sCustomURL)
+/***********************************************/
+{
+	$arXML = GetSteamInfo ($sCustomURL);
+	if (isset ($arXML['privacyState']))
+	{
+		if ($arXML['privacyState'] == 'public')
+		{
+			switch ($arXML['onlineState'])
+			{
+				case 'in-game':
+					if (isset ($arXML['inGameInfo']['gameName']))
+					{
+						$sInGame = $arXML['inGameInfo']['gameName'];
+					}
+					if ($sInGame == '') { $sInGame = 'unknown'; }
+					$sExtraInfo = 'in-game: ' . $sInGame;
+					break;
+				case 'offline':
+					$sExtraInfo = 'offline';
+					break;
+				case 'online':
+					$sExtraInfo = 'online';
+					break;
+			}
+		} else {
+			$sExtraInfo = 'profile not public';
+		}
+	} else {
+		$sExtraInfo = 'unknown privacyState';
+	}
+	Say ($sRecipient, ColorThis ('steam') . ' (' . $sTargetUser . ')' .
+		' http://steamcommunity.com/id/' . $sCustomURL .
+		' (' . $sExtraInfo . ')');
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -828,9 +864,8 @@ do {
 														' prefers not to share Steam information.');
 													break;
 												default:
-													Say ($sRecipient, ColorThis ('steam') . ' (' .
-														$sTargetUser . ')' .
-														' http://steamcommunity.com/id/' . $sCustomURL);
+													GiveSteamInfo ($sRecipient, $sTargetUser,
+														$sCustomURL);
 													break;
 											}
 										}
