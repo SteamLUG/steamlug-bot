@@ -392,11 +392,20 @@ function CapReq ()
 {
 	Write ('CAP REQ identify-msg');
 	/*** For security reasons, we MUST have acknowledgement. ***/
+	$sString = '';
+	$iGotAck = 0;
 	do {
-		$sString = fgets ($GLOBALS['socket'], $GLOBALS['maxlinelength']);
-		if ($sString != FALSE) { print ('[ WAIT ] ' . $sString); }
-	} while (strpos ($sString, 'CAP ' . $GLOBALS['botname'] .
-		' ACK :identify-msg') === FALSE);
+		$sGot = fgets ($GLOBALS['socket'], $GLOBALS['maxlinelength']);
+		if ($sGot != FALSE) { $sString .= $sGot; }
+		if (substr ($sString, -2) == "\r\n")
+		{
+			print ('[ WAIT ] ' . $sString);
+			if (strpos ($sString, 'CAP ' . $GLOBALS['botname'] .
+				' ACK :identify-msg') != FALSE) { $iGotAck = 1; }
+			$sString = '';
+		}
+		usleep (1000);
+	} while ($iGotAck == 0);
 }
 /***********************************************/
 function SetCustomURL ($sNick, $sCustomURL)
@@ -621,6 +630,7 @@ do {
 	Connect();
 	Nick ($GLOBALS['botname']);
 	User ($GLOBALS['botname']);
+	$sString = '';
 
 	while (feof ($GLOBALS['socket']) == FALSE)
 	{
@@ -639,9 +649,10 @@ do {
 			}
 		}
 
-		$sString = fgets ($GLOBALS['socket'], $GLOBALS['maxlinelength']);
+		$sGot = fgets ($GLOBALS['socket'], $GLOBALS['maxlinelength']);
+		if ($sGot != FALSE) { $sString .= $sGot; }
 
-		if ($sString != FALSE)
+		if (substr ($sString, -2) == "\r\n")
 		{
 			if (strstr ($sString, ' ') == FALSE)
 			{
@@ -649,8 +660,10 @@ do {
 			}
 			$ex = explode (' ', $sString);
 			$ex = preg_replace ('/\r|\n/', '', $ex);
-			if ($ex[1] == '437') /*** Nick taken, reclaim it. ***/
+			if (!isset ($ex[1]))
 			{
+				print ('[ WARN ] Strange: ' . $sString . "\n");
+			} else if ($ex[1] == '437') { /*** Nick taken, reclaim it. ***/
 				Nick ($GLOBALS['botnametemp']);
 				Say ('NickServ', 'RELEASE ' . $GLOBALS['botname'] .
 					' ' . $GLOBALS['password']);
@@ -672,9 +685,11 @@ do {
 				$sUsers = substr (GetPart ($sString, 6), 1);
 				$arUsers = explode (' ', $sUsers);
 				foreach ($arUsers as $sNick) { AddUser ($sChannel, $sNick); }
+			} else if ($ex[1] == '366') { /*** End of user listing. ***/
+				$iJoined = 2;
 			} else if ($ex[0] == 'PING') {
 				Write ('PONG ' . substr ($sString, 5));
-			} else if ($iJoined == 1) {
+			} else if ($iJoined == 2) {
 				$sNick = substr ($sString, 1, strpos ($sString, '!') - 1);
 				$sIdent = substr ($sString, strpos ($sString, '!') + 1,
 					strpos ($sString, '@') - strpos ($sString, '!') - 1);
@@ -941,6 +956,7 @@ do {
 						print ('[ INFO ] ' . $sString);
 				}
 			}
+			$sString = '';
 		}
 		usleep (1000);
 	}
