@@ -573,7 +573,9 @@ function GiveSteamInfo ($sRecipient, $sTargetUser, $sCustomURL)
 					{
 						$sInGame = $arXML['inGameInfo']['gameName'];
 					}
-					if ($sInGame == '') { $sInGame = 'unknown'; }
+					/*** Unknown games return an <![CDATA[]]> array? ***/
+					if (($sInGame == '') || (is_array ($sInGame)))
+						{ $sInGame = 'unknown'; }
 					$sExtraInfo = 'in-game: ' . $sInGame;
 					break;
 				case 'offline':
