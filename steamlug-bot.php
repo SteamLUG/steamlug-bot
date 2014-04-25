@@ -186,14 +186,20 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 		$iMaxURL = 0;
 		foreach ($arMatches as $sMatch)
 		{
-			$iMaxURL++;
 			if (ValidURL ($sMatch) == 1)
 			{
 				$sMatch = GetFinalURL ($sMatch);
-				$sTitle = GetTitle ($sMatch);
-				if ($sTitle != FALSE)
+				foreach ($GLOBALS['needurlinfo'] as $key=>$value)
 				{
-					Say ($sRecipient, ColorThis ('url') . ' ' . $sTitle);
+					if ($value == substr ($sMatch, 0, strlen ($sMatch)))
+					{
+						$sTitle = GetTitle ($sMatch);
+						if ($sTitle != FALSE)
+						{
+							Say ($sRecipient, ColorThis ('url') . ' ' . $sTitle);
+							$iMaxURL++;
+						}
+					}
 				}
 			}
 			if ($iMaxURL == 3) { break; }
