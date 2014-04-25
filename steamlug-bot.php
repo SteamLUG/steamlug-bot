@@ -191,7 +191,7 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 				$sMatch = GetFinalURL ($sMatch);
 				foreach ($GLOBALS['needurlinfo'] as $key=>$value)
 				{
-					if ($value == substr ($sMatch, 0, strlen ($sMatch)))
+					if ($value == substr ($sMatch, 0, strlen ($value)))
 					{
 						$sTitle = GetTitle ($sMatch);
 						if ($sTitle != FALSE)
