@@ -126,7 +126,9 @@ function GetPage ($sUrl)
 	curl_setopt ($ch, CURLOPT_MAXREDIRS, 4);
 	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, TRUE);
 	curl_setopt ($ch, CURLOPT_USERAGENT, $GLOBALS['useragent']);
+	curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 10);
 	$sPage = curl_exec ($ch);
+	curl_close ($ch);
 
 	return ($sPage);
 }
@@ -288,9 +290,11 @@ function Found ($sTable, $sColumn, $sValue)
 			else { return (FALSE); }
 }
 /***********************************************/
-function GetSteamInfo ($sCustomURL)
+function GetSteamInfoXML ($sCustomURL)
 /***********************************************/
 {
+	/*** Deprecated. ***/
+
 	ini_set ('user_agent', $GLOBALS['useragent']);
 	$xmlXML = simplexml_load_file ('http://steamcommunity.com/id/' .
 		$sCustomURL . '/?xml=1', NULL, LIBXML_NOCDATA);
@@ -301,6 +305,27 @@ function GetSteamInfo ($sCustomURL)
 	$arXML = json_decode (json_encode ((array)$xmlXML), TRUE);
 
 	return ($arXML);
+}
+/***********************************************/
+function GetSteamInfoAPI ($sCustomURL)
+/***********************************************/
+{
+	$sURL = $GLOBALS['steam_api_base'] . 'ResolveVanityURL/v0001/' .
+		'?key=' . $GLOBALS['steam_api_key'] . '&vanityurl=' . $sCustomURL;
+	$jsn = GetPage ($sURL);
+	$arResult = json_decode ($jsn, TRUE);
+	if ($arResult['response']['success'] == 1)
+	{
+		$sSteamId = $arResult['response']['steamid'];
+		$sURL = $GLOBALS['steam_api_base'] . 'GetPlayerSummaries/v0002/' .
+			'?key=' . $GLOBALS['steam_api_key'] . '&steamids=' . $sSteamId;
+		$jsn = GetPage ($sURL);
+		$arResult = json_decode ($jsn, TRUE);
+
+		return ($arResult);
+	} else {
+		return (FALSE);
+	}
 }
 /***********************************************/
 

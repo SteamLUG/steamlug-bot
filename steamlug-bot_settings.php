@@ -20,10 +20,14 @@
 	$GLOBALS['twitter_api_key'] = 'SECRET';
 	$GLOBALS['twitter_api_secret'] = 'SECRET';
 
+	/*** Steam Web API: http://steamcommunity.com/dev ***/
+	$GLOBALS['steam_api_key'] = 'SECRET';
+	$GLOBALS['steam_api_base'] = 'http://api.steampowered.com/ISteamUser/';
+
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.16';
+	$GLOBALS['botversion'] = '0.17';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['idlesince'] = time();
 	$GLOBALS['twitter_names'] = array ('SteamLUG');

@@ -573,10 +573,12 @@ function UserInChannel ($sChannel, $sNick)
 			else { return (FALSE); }
 }
 /***********************************************/
-function GiveSteamInfo ($sRecipient, $sTargetUser, $sCustomURL)
+function GiveSteamInfoXML ($sRecipient, $sTargetUser, $sCustomURL)
 /***********************************************/
 {
-	$arXML = GetSteamInfo ($sCustomURL);
+	/*** Deprecated. ***/
+
+	$arXML = GetSteamInfoXML ($sCustomURL);
 	if (isset ($arXML['privacyState']))
 	{
 		if ($arXML['privacyState'] == 'public')
@@ -605,6 +607,67 @@ function GiveSteamInfo ($sRecipient, $sTargetUser, $sCustomURL)
 		}
 	} else {
 		$sExtraInfo = 'unknown privacyState';
+	}
+	Say ($sRecipient, ColorThis ('steam') . ' (' . $sTargetUser . ')' .
+		' http://steamcommunity.com/id/' . $sCustomURL .
+		' (' . $sExtraInfo . ')');
+}
+/***********************************************/
+function GiveSteamInfoAPI ($sRecipient, $sTargetUser, $sCustomURL)
+/***********************************************/
+{
+	$arResult = GetSteamInfoAPI ($sCustomURL);
+	if (isset ($arResult['response']['players'][0]['communityvisibilitystate']))
+	{
+		$communityvisibilitystate =
+			$arResult['response']['players'][0]['communityvisibilitystate'];
+		if ($communityvisibilitystate == 3)
+		{
+			if (isset ($arResult['response']['players'][0]['personastate']))
+			{
+				$personastate =
+					$arResult['response']['players'][0]['personastate'];
+				switch ($personastate)
+				{
+					case 0:
+						if (isset ($arResult['response']['players'][0]['lastlogoff']))
+						{
+							$lastlogoff =
+								$arResult['response']['players'][0]['lastlogoff'];
+							$sDateTime = date ('Y-m-d H:i:s', $lastlogoff) . ' UTC';
+						} else {
+							$sDateTime = 'unknown';
+						}
+						$sExtraInfo = 'offline since ' . $sDateTime;
+						break;
+					case 1: $sExtraInfo = 'online'; break;
+					case 2: $sExtraInfo = 'busy'; break;
+					case 3: $sExtraInfo = 'away'; break;
+					case 4: $sExtraInfo = 'snooze'; break;
+					case 5: $sExtraInfo = 'looking to trade'; break;
+					case 6: $sExtraInfo = 'looking to play'; break;
+				}
+				if ((isset ($arResult['response']['players'][0]['gameextrainfo'])) &&
+					(isset ($arResult['response']['players'][0]['gameserverip'])))
+				{
+					$gameextrainfo =
+						$arResult['response']['players'][0]['gameextrainfo'];
+					$gameserverip =
+						$arResult['response']['players'][0]['gameserverip'];
+					$sExtraInfo .= '; in-game: ' . $gameextrainfo;
+					if ($gameserverip != '0.0.0.0:0')
+					{
+						$sExtraInfo .= ' - ' . $gameserverip;
+					}
+				}
+			} else {
+				$sExtraInfo = 'unknown personastate';
+			}
+		} else {
+			$sExtraInfo = 'profile not public';
+		}
+	} else {
+		$sExtraInfo = 'unknown communityvisibilitystate';
 	}
 	Say ($sRecipient, ColorThis ('steam') . ' (' . $sTargetUser . ')' .
 		' http://steamcommunity.com/id/' . $sCustomURL .
@@ -834,7 +897,7 @@ do {
 													switch ($sResult)
 													{
 														case 'failed':
-															$sSay = 'has NOT be added/updated'; break;
+															$sSay = 'has NOT been added/updated'; break;
 														case 'insert':
 															$sSay = 'has been added'; break;
 														case 'update':
@@ -887,7 +950,7 @@ do {
 														' prefers not to share Steam information.');
 													break;
 												default:
-													GiveSteamInfo ($sRecipient, $sTargetUser,
+													GiveSteamInfoAPI ($sRecipient, $sTargetUser,
 														$sCustomURL);
 													break;
 											}
