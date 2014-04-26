@@ -915,8 +915,11 @@ do {
 											} else {
 												Say ($sRecipient, $GLOBALS['susage']);
 											}
+										} else if ($exsay[1] == $GLOBALS['botname']) {
+											Say ($sRecipient, $GLOBALS['botsteam']);
 										} else {
 											$sTargetUser = FixString ($exsay[1]);
+											if ($sTargetUser == 'me') { $sTargetUser = $sNick; }
 											$sCustomURL = GetCustomURL ($sTargetUser);
 											switch ($sCustomURL)
 											{
