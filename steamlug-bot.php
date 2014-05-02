@@ -674,6 +674,72 @@ function GiveSteamInfoAPI ($sRecipient, $sTargetUser, $sCustomURL)
 		' (' . $sExtraInfo . ')');
 }
 /***********************************************/
+function LastSeen ($sTargetUser)
+/***********************************************/
+{
+	$sTargetUser = mysqli_real_escape_string ($GLOBALS['link'], $sTargetUser);
+	$query = "SELECT log_channel, log_text, log_datetime FROM `log` WHERE" .
+		" (log_nick='" . $sTargetUser . "') AND (log_identified='1') AND" .
+		" (log_channel LIKE '#%') AND (log_channel NOT LIKE '#botwar%') ORDER" .
+		" BY log_datetime DESC;";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	if (mysqli_num_rows ($result) > 0)
+	{
+		$row = mysqli_fetch_assoc ($result);
+		$arReturn = array();
+		$arReturn['log_channel'] = $row['log_channel'];
+		$arReturn['log_text'] = $row['log_text'];
+		$arReturn['log_datetime'] = $row['log_datetime'];
+		$dtThen = new DateTime ($row['log_datetime']);
+		$dtNow = new DateTime (DateTime());
+		$arReturn['time_ago'] = date_diff ($dtThen, $dtNow);
+		$iAgoY = $arReturn['time_ago']->y;
+		$iAgoM = $arReturn['time_ago']->m;
+		$iAgoD = $arReturn['time_ago']->d;
+		$iAgoH = $arReturn['time_ago']->h;
+		$iAgoI = $arReturn['time_ago']->i;
+		$iAgoS = $arReturn['time_ago']->s;
+		$arReturn['tas'] = '';
+		$iTas = 0;
+		if ($iAgoY != 0)
+		{
+			$arReturn['tas'] .= $iAgoY . ' years'; $iTas++;
+		}
+		if ($iAgoM != 0)
+		{
+			if ($iTas != 0) { $arReturn['tas'] .= ', '; }
+			$arReturn['tas'] .= $iAgoM . ' months'; $iTas++;
+		}
+		if ($iAgoD != 0)
+		{
+			if ($iTas != 0) { $arReturn['tas'] .= ', '; }
+			$arReturn['tas'] .= $iAgoD . ' days'; $iTas++;
+		}
+		if ($iAgoH != 0)
+		{
+			if ($iTas != 0) { $arReturn['tas'] .= ', '; }
+			$arReturn['tas'] .= $iAgoH . ' hours'; $iTas++;
+		}
+		if ($iAgoI != 0)
+		{
+			if ($iTas != 0) { $arReturn['tas'] .= ', '; }
+			$arReturn['tas'] .= $iAgoI . ' minutes'; $iTas++;
+		}
+		if ($iAgoS != 0)
+		{
+			if ($iTas != 0) { $arReturn['tas'] .= ' and '; }
+			$arReturn['tas'] .= $iAgoS . ' seconds'; $iTas++;
+		}
+		if ($iTas == 0)
+			{ $arReturn['tas'] = 'just now'; }
+				else { $arReturn['tas'] .= ' ago'; }
+	} else {
+		$arReturn = FALSE;
+	}
+
+	return ($arReturn);
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -960,6 +1026,26 @@ do {
 										}
 									} else {
 										Say ($sRecipient, $GLOBALS['susage']);
+									}
+									break;
+								case '!seen':
+									if (isset ($exsay[1]))
+									{
+										$sTargetUser = FixString ($exsay[1]);
+										$arLastSeen = LastSeen ($sTargetUser);
+										if ($arLastSeen == FALSE)
+										{
+											Say ($sRecipient, ColorThis ('seen') .
+												' I have never seen "' . $sTargetUser . '".');
+										} else {
+											Say ($sRecipient, ColorThis ('seen') .
+												' I last saw ' . $sTargetUser . ' talk in ' .
+												$arLastSeen['log_channel'] . ', ' .
+												$arLastSeen['tas'] . ' ("' .
+												$arLastSeen['log_text'] . '").');
+										}
+									} else {
+										Say ($sRecipient, 'Usage: !seen <IRC nick>');
 									}
 									break;
 							}
