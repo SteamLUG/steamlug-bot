@@ -1036,7 +1036,8 @@ do {
 										if ($arLastSeen == FALSE)
 										{
 											Say ($sRecipient, ColorThis ('seen') .
-												' I have never seen "' . $sTargetUser . '".');
+												' I have never seen (an identified) "' .
+												$sTargetUser . '" talk.');
 										} else {
 											Say ($sRecipient, ColorThis ('seen') .
 												' I last saw ' . $sTargetUser . ' talk in ' .
