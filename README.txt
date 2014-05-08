@@ -15,6 +15,8 @@ Gives title information about URLs.
 
 Checks for (and displays) new Tweets.
 
+Checks for (and displays) new game/DLC releases on Steam that support Linux.
+
 Replies to:
 - !seen <IRC nick>
 - !s <IRC nick> | !s set <Steam customURL /id/> | !s me

@@ -740,6 +740,30 @@ function LastSeen ($sTargetUser)
 	return ($arReturn);
 }
 /***********************************************/
+function CheckNewReleases ()
+/***********************************************/
+{
+	$query = "SELECT * FROM `newreleases` WHERE (newrelease_said='0');";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	while ($row = mysqli_fetch_assoc ($result))
+	{
+		$sId = $row['newrelease_id'];
+		$sType = $row['newrelease_type'];
+		$sName = $row['newrelease_name'];
+		if (($sType == 'dlc') && ($row['newrelease_fullgame'] != ''))
+		{
+			$sType .= ' of ' . $row['newrelease_fullgame'];
+		}
+		Say ($GLOBALS['channel'], ColorThis ('new') . ' (' . $sType . ') ' .
+			$sName . ' http://store.steampowered.com/app/' . $sId . '/');
+
+		/*** Said. ***/
+		$query_update = "UPDATE `newreleases` SET newrelease_said='1' WHERE" .
+			" (newrelease_id='" . $sId . "');";
+		$result_update = mysqli_query ($GLOBALS['link'], $query_update);
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -772,9 +796,13 @@ do {
 			if($currenttime > $oldtime + 15)
 			{
 				$oldtime = $currenttime;
-				CheckTweets();
-				/*** CheckNews(); ***/
-				CheckEvents();
+				if ($iJoined == 2)
+				{
+					CheckTweets();
+					/*** CheckNews(); ***/
+					CheckEvents();
+					CheckNewReleases();
+				}
 			}
 		}
 

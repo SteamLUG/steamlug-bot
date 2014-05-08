@@ -17,5 +17,8 @@
 	$arEvents = GetEvents();
 	EventsToMySQL ($arEvents);
 
+	$arNewReleases = GetNewReleases();
+	NewReleasesToMySQL ($arNewReleases);
+
 	mysqli_close ($GLOBALS['link']);
 ?>

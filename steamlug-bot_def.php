@@ -328,6 +328,151 @@ function GetSteamInfoAPI ($sCustomURL)
 	}
 }
 /***********************************************/
+function EmptyTable ($sTable)
+/***********************************************/
+{
+	$query = "SELECT COUNT(*) AS count FROM `" . $sTable . "`;";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$row = mysqli_fetch_assoc ($result);
+
+	switch ($row['count'])
+	{
+		case 0: return (TRUE); break;
+		default: return (FALSE); break;
+	}
+}
+/***********************************************/
+function GetNewReleases ()
+/***********************************************/
+{
+	$jsn = GetPage ('http://store.steampowered.com/api/getappsincategory/?category=cat_newreleases');
+
+	return (json_decode ($jsn, TRUE));
+}
+/***********************************************/
+function GetAppDetails ($sID)
+/***********************************************/
+{
+	$jsn = GetPage ('http://store.steampowered.com/api/appdetails/?appids=' .
+		$sID);
+
+	return (json_decode ($jsn, TRUE));
+}
+/***********************************************/
+function NewReleasesToMySQL ($arNewReleases)
+/***********************************************/
+{
+	if (EmptyTable ('newreleases') == TRUE)
+		{ $iSay = 1; } else { $iSay = 0; }
+
+	/*** Not using tabs: topsellers, specials, under_ten ***/
+	if (($arNewReleases['status'] == 1) &&
+		(isset ($arNewReleases['tabs']['viewall']['items'])) &&
+		(isset ($arNewReleases['tabs']['dlc']['items'])))
+	{
+		$arIDs = array();
+		foreach ($arNewReleases['tabs']['viewall']['items'] as $key=>$value)
+			{ array_push ($arIDs, $value['id']); }
+		foreach ($arNewReleases['tabs']['dlc']['items'] as $key=>$value)
+			{ array_push ($arIDs, $value['id']); }
+		$arIDs = array_unique ($arIDs);
+
+		/*** Fill temporary table. ***/
+		$query = "TRUNCATE TABLE `newreleases_temp`;";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if ($result == FALSE)
+		{
+			/*** TODO: These warnings need to show up at log.php. ***/
+			print ('[ WARN ] This query failed: ' . $query . "\n");
+		}
+		$query = "INSERT INTO `newreleases_temp` VALUES ";
+		foreach ($arIDs as $key=>$value)
+		{
+			$query .= "('" . $value . "'), ";
+		}
+		$query = substr ($query, 0, -2) . ";";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if ($result == FALSE)
+		{
+			/*** TODO: These warnings need to show up at log.php. ***/
+			print ('[ WARN ] This query failed: ' . $query . "\n");
+		}
+
+		$query = "SELECT `newreleases_temp`.newrelease_id AS id FROM" .
+			" `newreleases_temp` LEFT JOIN `newreleases` ON" .
+			" (`newreleases`.newrelease_id = `newreleases_temp`.newrelease_id)" .
+			" WHERE (`newreleases`.newrelease_id IS NULL);";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if ($result == FALSE)
+		{
+			/*** TODO: These warnings need to show up at log.php. ***/
+			print ('[ WARN ] This query failed: ' . $query . "\n");
+		}
+		while ($row = mysqli_fetch_assoc ($result))
+		{
+			$sID = $row['id'];
+
+			$arDetails = GetAppDetails ($sID);
+			if (($arDetails[$sID]['success'] == 1) &&
+				(isset ($arDetails[$sID]['data']['type'])) &&
+				(isset ($arDetails[$sID]['data']['name'])) &&
+				(isset ($arDetails[$sID]['data']['platforms']['windows'])) &&
+				(isset ($arDetails[$sID]['data']['platforms']['mac'])) &&
+				(isset ($arDetails[$sID]['data']['platforms']['linux'])))
+			{
+				if (isset ($arDetails[$sID]['data']['fullgame']['name']))
+				{
+					$sFullGame = $arDetails[$sID]['data']['fullgame']['name'];
+					$sFullGame = mysqli_real_escape_string ($GLOBALS['link'], $sFullGame);
+				} else { $sFullGame = ''; }
+				$sType = $arDetails[$sID]['data']['type'];
+				$sName = $arDetails[$sID]['data']['name'];
+				$sName = mysqli_real_escape_string ($GLOBALS['link'], $sName);
+				if ($arDetails[$sID]['data']['platforms']['windows'] == '1')
+					{ $iWindows = 1; } else { $iWindows = 0; }
+				if ($arDetails[$sID]['data']['platforms']['mac'] == '1')
+					{ $iMac = 1; } else { $iMac = 0; }
+				if ($arDetails[$sID]['data']['platforms']['linux'] == '1')
+					{ $iLinux = 1; } else { $iLinux = 0; }
+				if ($iLinux == 0) { $iSaid = 1; } else { $iSaid = $iSay; }
+				$query_insert = "INSERT INTO `newreleases` VALUES ('" .
+					$sID . "', '" .
+					$sType . "', '" .
+					$sName . "', '" .
+					$sFullGame . "', '" .
+					$iWindows . "', '" .
+					$iMac . "', '" .
+					$iLinux . "', '" .
+					$iSaid . "');";
+				$result_insert = mysqli_query ($GLOBALS['link'], $query_insert);
+				if ($result_insert == FALSE)
+				{
+					/*** TODO: These warnings need to show up at log.php. ***/
+					print ('[ WARN ] This query failed: ' . $query_insert . "\n");
+				}
+			} else {
+				/*** TODO: These warnings need to show up at log.php. ***/
+				print ('[ WARN ] Unexpected Steam data:' . "\n");
+				print_r ($arDetails);
+
+				/*** We don't want to keep fetching data. ***/
+				$query_insert = "INSERT INTO `newreleases` VALUES ('" .
+					$sID . "', 'failed', 'failed', '', 0, 0, 0, 1);";
+				$result_insert = mysqli_query ($GLOBALS['link'], $query_insert);
+				if ($result_insert == FALSE)
+				{
+					/*** TODO: These warnings need to show up at log.php. ***/
+					print ('[ WARN ] This query failed: ' . $query_insert . "\n");
+				}
+			}
+		}
+	} else {
+		/*** TODO: These warnings need to show up at log.php. ***/
+		print ('[ WARN ] Unexpected Steam data:' . "\n");
+		print_r ($arNewReleases);
+	}
+}
+/***********************************************/
 
 	ConnectToMySQL();
 ?>

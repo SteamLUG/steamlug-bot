@@ -11,3 +11,5 @@ INSERT INTO `settings` VALUES ('last_event_mentioned', '0');
 CREATE TABLE `customurl` (customurl_id BIGINT UNSIGNED UNIQUE NOT NULL AUTO_INCREMENT, customurl_nick VARCHAR(100) UNIQUE NOT NULL, customurl_url VARCHAR(500) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE `askcustomurl` (askcustomurl_id BIGINT UNSIGNED UNIQUE NOT NULL AUTO_INCREMENT, askcustomurl_nick VARCHAR(100) UNIQUE NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 INSERT INTO `customurl` VALUES (NULL, 'homerj', 'none');
+CREATE TABLE `newreleases` (newrelease_id VARCHAR(10) UNIQUE NOT NULL, newrelease_type VARCHAR(10) NOT NULL, newrelease_name VARCHAR(500) NOT NULL, newrelease_fullgame VARCHAR(500), newrelease_windows INT(1) NOT NULL, newrelease_mac INT(1) NOT NULL, newrelease_linux INT(1) NOT NULL, newrelease_said INT(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `newreleases_temp` (newrelease_id VARCHAR(10) UNIQUE NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
