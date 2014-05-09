@@ -165,7 +165,7 @@ function CheckEvents ()
 				}
 					Say ($GLOBALS['channel'], ColorThis ('event') .
 						' [' . $row['event_title'] . '] ' . $sText . ' (' .
-						$row['event_date'] . ' - ' . $row['event_link'] . ')');
+						$row['event_pubdate'] . ' - ' . $row['event_link'] . ')');
 				$lastid = $row['event_id'];
 			}
 			SetSetting ('last_event_mentioned', $lastid);

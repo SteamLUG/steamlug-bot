@@ -248,8 +248,8 @@ function EventsToMySQL ($arEvents)
 		$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
 
 		$sLink = (string)$value['link'];
-/***
 		$sGuid = (string)$value['guid'];
+/***
 		if ($sLink != $sGuid)
 		{
 			print ('[ WARN ] Apparently, link and guid are different!' . "\n");
@@ -265,13 +265,14 @@ function EventsToMySQL ($arEvents)
 
 		/*** Prevent duplicates. Here we do not use INSERT IGNORE ***/
 		/*** because of the AUTO_INCREMENT column. ***/
-		if (Found ('events', 'event_link', $sLink) == FALSE)
+		if (Found ('events', 'event_guid', $sGuid) == FALSE)
 		{
 			$query = "INSERT INTO `events` VALUES (NULL, '" .
 				$sCategory . "', '" .
 				$sTitle . "', '" .
 				$sText . "', '" .
 				$sLink . "', '" .
+				$sGuid . "', '" .
 				$sDateTime . "');";
 			$result = mysqli_query ($GLOBALS['link'], $query);
 		}
