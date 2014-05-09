@@ -383,8 +383,7 @@ function NewReleasesToMySQL ($arNewReleases)
 		$result = mysqli_query ($GLOBALS['link'], $query);
 		if ($result == FALSE)
 		{
-			/*** TODO: These warnings need to show up at log.php. ***/
-			print ('[ WARN ] This query failed: ' . $query . "\n");
+			GetLog ('This query failed: ' . $query);
 		}
 		$query = "INSERT INTO `newreleases_temp` VALUES ";
 		foreach ($arIDs as $key=>$value)
@@ -395,8 +394,7 @@ function NewReleasesToMySQL ($arNewReleases)
 		$result = mysqli_query ($GLOBALS['link'], $query);
 		if ($result == FALSE)
 		{
-			/*** TODO: These warnings need to show up at log.php. ***/
-			print ('[ WARN ] This query failed: ' . $query . "\n");
+			GetLog ('This query failed: ' . $query);
 		}
 
 		$query = "SELECT `newreleases_temp`.newrelease_id AS id FROM" .
@@ -406,8 +404,7 @@ function NewReleasesToMySQL ($arNewReleases)
 		$result = mysqli_query ($GLOBALS['link'], $query);
 		if ($result == FALSE)
 		{
-			/*** TODO: These warnings need to show up at log.php. ***/
-			print ('[ WARN ] This query failed: ' . $query . "\n");
+			GetLog ('This query failed: ' . $query);
 		}
 		while ($row = mysqli_fetch_assoc ($result))
 		{
@@ -448,13 +445,10 @@ function NewReleasesToMySQL ($arNewReleases)
 				$result_insert = mysqli_query ($GLOBALS['link'], $query_insert);
 				if ($result_insert == FALSE)
 				{
-					/*** TODO: These warnings need to show up at log.php. ***/
-					print ('[ WARN ] This query failed: ' . $query_insert . "\n");
+					GetLog ('This query failed: ' . $query_insert);
 				}
 			} else {
-				/*** TODO: These warnings need to show up at log.php. ***/
-				print ('[ WARN ] Unexpected Steam data:' . "\n");
-				print_r ($arDetails);
+				GetLog ('Unexpected Steam data:' . implode ($arDetails, '|'));
 
 				/*** We don't want to keep fetching data. ***/
 				$query_insert = "INSERT INTO `newreleases` VALUES ('" .
@@ -462,15 +456,33 @@ function NewReleasesToMySQL ($arNewReleases)
 				$result_insert = mysqli_query ($GLOBALS['link'], $query_insert);
 				if ($result_insert == FALSE)
 				{
-					/*** TODO: These warnings need to show up at log.php. ***/
-					print ('[ WARN ] This query failed: ' . $query_insert . "\n");
+					GetLog ('This query failed: ' . $query_insert);
 				}
 			}
 		}
 	} else {
-		/*** TODO: These warnings need to show up at log.php. ***/
-		print ('[ WARN ] Unexpected Steam data:' . "\n");
-		print_r ($arNewReleases);
+		GetLog ('Unexpected Steam data:' . implode ($arNewReleases, '|'));
+	}
+}
+/***********************************************/
+function DateTime ()
+/***********************************************/
+{
+	return (date ('Y-m-d H:i:s', time()));
+}
+/***********************************************/
+function GetLog ($sText)
+/***********************************************/
+{
+	$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
+	$sDateTime = DateTime();
+	$query = "INSERT INTO `getlog` VALUES (NULL, '" .
+		$sText . "', '" .
+		$sDateTime . "');";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	if ($result == FALSE)
+	{
+		print ('[ WARN ] This query failed: ' . $query . "\n");
 	}
 }
 /***********************************************/

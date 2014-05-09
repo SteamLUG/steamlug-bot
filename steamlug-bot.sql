@@ -13,3 +13,4 @@ CREATE TABLE `askcustomurl` (askcustomurl_id BIGINT UNSIGNED UNIQUE NOT NULL AUT
 INSERT INTO `customurl` VALUES (NULL, 'homerj', 'none');
 CREATE TABLE `newreleases` (newrelease_id VARCHAR(10) UNIQUE NOT NULL, newrelease_type VARCHAR(10) NOT NULL, newrelease_name VARCHAR(500) NOT NULL, newrelease_fullgame VARCHAR(500), newrelease_windows INT(1) NOT NULL, newrelease_mac INT(1) NOT NULL, newrelease_linux INT(1) NOT NULL, newrelease_said INT(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE `newreleases_temp` (newrelease_id VARCHAR(10) UNIQUE NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `getlog` (getlog_id BIGINT UNSIGNED UNIQUE NOT NULL AUTO_INCREMENT, getlog_text VARCHAR(500) NOT NULL, getlog_datetime DATETIME NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;

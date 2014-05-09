@@ -20,5 +20,7 @@
 	$arNewReleases = GetNewReleases();
 	NewReleasesToMySQL ($arNewReleases);
 
+	GetLog ($GLOBALS['getlog_done']);
+
 	mysqli_close ($GLOBALS['link']);
 ?>
