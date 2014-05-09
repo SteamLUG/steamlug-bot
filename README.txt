@@ -53,7 +53,7 @@ misrepresented as being the original software.
 1. apt-get install mysql-server php5-cli php5-mysql php5-curl
 2. Change the settings inside the "steamlug-bot_settings.php" file.
 3. Create the required database and tables (see steamlug-bot.sql).
-4. In the "get_data.php: file, change the /var/www/steamlug-bot/ path.
+4. In the "get_data.sh: file, change the /var/www/steamlug-bot/ path.
 5. Make sure get_data.sh is running; see comments inside that file.
 6. Run: $ php steamlug-bot.php
 
