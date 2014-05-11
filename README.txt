@@ -18,6 +18,7 @@ Checks for (and displays) new Tweets.
 Checks for (and displays) new game/DLC releases on Steam that support Linux.
 
 Replies to:
+- !time <"UTC"|two-letter country code|timezone name>
 - !seen <IRC nick>
 - !s <IRC nick> | !s set <Steam customURL /id/> | !s me
 - !ping [text]

@@ -758,6 +758,59 @@ function CheckNewReleases ()
 	}
 }
 /***********************************************/
+function UTCDiff ($sThere)
+/***********************************************/
+{
+	$dtThere = new DateTime ($sThere);
+	$dtUTC = new DateTime (DateTime());
+	$arDiff = date_diff ($dtUTC, $dtThere, FALSE);
+	if (($arDiff->h != 0) || ($arDiff->i != 0))
+		{ $sDiff = '; UTC'; } else { $sDiff = ''; }
+	if ($arDiff->h != 0) { $sDiff .= $arDiff->format('%R%h'); }
+	if ($arDiff->i != 0) { $sDiff .= '.' . $arDiff->i; }
+	return ($sDiff);
+}
+/***********************************************/
+function ReturnTime ($sInTime)
+/***********************************************/
+{
+	if (strlen ($sInTime) == 2)
+	{
+		$arNames = timezone_identifiers_list (DateTimeZone::PER_COUNTRY, $sInTime);
+		switch (count ($arNames))
+		{
+			case 0:
+				$arTimeZone = array (FALSE, 'Unknown two-letter country code.' .
+					' See: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2');
+				break;
+			case 1:
+				$arTimeZone = array (TRUE, $arNames[0]);
+				break;
+			default:
+				$arTimeZone = array (FALSE, 'This country has several timezones ("' .
+					$arNames[0] . '", "' . $arNames[1] . '", ...); please provide a' .
+					' timezone name. See: http://www.php.net/manual/en/timezones.php');
+				break;
+		}
+	} else {
+		$arTimeZone = array (TRUE, $sInTime);
+	}
+	if ($arTimeZone[0] != FALSE)
+	{
+		$zoneList = timezone_identifiers_list();
+		if (!in_array ($arTimeZone[1], $zoneList))
+		{
+			return ('Unknown timezone.');
+		} else {
+			$d = new DateTime('now', new DateTimeZone($arTimeZone[1]));
+			return ($d->format('H:i:s') . ' (on ' . $d->format('Y-m-d') .
+				')' . UTCDiff ($d->format('Y-m-d H:i:s')));
+		}
+	} else {
+		return ($arTimeZone[1]);
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1071,6 +1124,17 @@ do {
 										Say ($sRecipient, 'Usage: !seen <IRC nick>');
 									}
 									break;
+								case '!time':
+									if (isset ($exsay[1]))
+									{
+										$sInTime = FixString ($exsay[1]);
+										$sOutTime = ReturnTime ($sInTime);
+										Say ($sRecipient, ColorThis ('time') . ' (' . $sInTime .
+											') ' . $sOutTime);
+									} else {
+										Say ($sRecipient, 'Usage: !time <"UTC"|two-letter' .
+											' country code|timezone name>');
+									}
 							}
 						}
 						break;
