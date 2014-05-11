@@ -797,15 +797,14 @@ function ReturnTime ($sInTime)
 	}
 	if ($arTimeZone[0] != FALSE)
 	{
-		$zoneList = timezone_identifiers_list();
-		if (!in_array ($arTimeZone[1], $zoneList))
-		{
-			return ('Unknown timezone.');
-		} else {
+		/*** timezone_identifiers_list() is incomplete; do NOT use it. ***/
+		try {
 			$d = new DateTime('now', new DateTimeZone($arTimeZone[1]));
-			return ($d->format('H:i:s') . ' (on ' . $d->format('Y-m-d') .
-				')' . UTCDiff ($d->format('Y-m-d H:i:s')));
+		} catch (Exception $e) {
+			return ('Unknown timezone.');
 		}
+		return ($d->format('H:i:s') . ' (on ' . $d->format('Y-m-d') .
+			')' . UTCDiff ($d->format('Y-m-d H:i:s')));
 	} else {
 		return ($arTimeZone[1]);
 	}
