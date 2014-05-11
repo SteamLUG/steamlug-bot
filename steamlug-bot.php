@@ -207,6 +207,20 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 	}
 }
 /***********************************************/
+function ExtractThanks ($sRecipient, $sNick, $sSaid)
+/***********************************************/
+{
+	$sIn = strtolower ($sSaid);
+	$sPattern1 = '/^' . strtolower ($GLOBALS['botname']) . '[:,]? thanks[.!]?$/';
+	$iBingo1 = preg_match ($sPattern1, $sIn, $arMatch);
+	$sPattern2 = '/^thanks,? ' . strtolower ($GLOBALS['botname']) . '[.! ]?$/';
+	$iBingo2 = preg_match ($sPattern2, $sIn, $arMatch);
+	if (($iBingo1 == 1) || ($iBingo2 == 1))
+	{
+		Say ($sRecipient, $sNick . ': no problem! ^-^');
+	}
+}
+/***********************************************/
 function LastTweets ($sRecipient, $arTweets)
 /***********************************************/
 {
@@ -924,6 +938,7 @@ do {
 							($ex[1] != 'NOTICE'))
 						{
 							ExtractURLInfo ($sRecipient, $sSaid);
+							ExtractThanks ($sRecipient, $sNick, $sSaid);
 							$exsay = explode (' ', $sSaid);
 							switch ($exsay[0])
 							{
