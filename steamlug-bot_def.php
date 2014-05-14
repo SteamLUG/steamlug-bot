@@ -448,7 +448,8 @@ function NewReleasesToMySQL ($arNewReleases)
 					GetLog ('This query failed: ' . $query_insert);
 				}
 			} else {
-				GetLog ('Unexpected Steam data:' . implode ($arDetails, '|'));
+				GetLog ('Unexpected Steam data (for ' . $sID . '): ' .
+					implode ($arDetails, '|'));
 
 				/*** We don't want to keep fetching data. ***/
 				$query_insert = "INSERT INTO `newreleases` VALUES ('" .
@@ -461,7 +462,7 @@ function NewReleasesToMySQL ($arNewReleases)
 			}
 		}
 	} else {
-		GetLog ('Unexpected Steam data:' . implode ($arNewReleases, '|'));
+		GetLog ('Unexpected Steam data: ' . implode ($arNewReleases, '|'));
 	}
 }
 /***********************************************/
