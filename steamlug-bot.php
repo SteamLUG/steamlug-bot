@@ -331,6 +331,12 @@ function GetURL ($sUrl)
 	$sData = curl_exec ($ch);
 	curl_close ($ch);
 
+	/*** For gzip compressed data. ***/
+	if (($sData[0] == chr(0x1f)) && ($sData[1] == chr(0x8b)))
+	{
+		$sData = gzinflate (substr ($sData, 10, -8));
+	}
+
 	return ($sData);
 }
 /***********************************************/
