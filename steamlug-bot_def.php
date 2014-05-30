@@ -236,6 +236,13 @@ function GetEvents ()
 function EventsToMySQL ($arEvents)
 /***********************************************/
 {
+	/*** If it's just one entry... ***/
+	if (isset ($arEvents['title']))
+	{
+		$arSingle = $arEvents;
+		$arEvents = array();
+		array_push ($arEvents, $arSingle);
+	}
 	foreach ($arEvents as $key=>$value)
 	{
 		$sTitle = (string)$value['title'];
