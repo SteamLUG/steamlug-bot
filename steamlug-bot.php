@@ -830,6 +830,60 @@ function ReturnTime ($sInTime)
 	}
 }
 /***********************************************/
+function UpcomingEvents ()
+/***********************************************/
+{
+	$sReturn = '';
+
+	/*** Right now. ***/
+	$query = "SELECT DISTINCT event_title, event_link, event_date FROM" .
+		" `events` WHERE (event_date > DATE(NOW()-INTERVAL 2 HOUR)) AND" .
+		" (event_date < NOW());";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	if (mysqli_num_rows ($result) == 1)
+	{
+		$row = mysqli_fetch_assoc ($result);
+		$sTitle = str_replace ('SteamLUG ', '', $row['event_title']);
+		$sReturn .= 'Right now: "' . $sTitle . '".';
+	}
+
+	/*** Future. ***/
+	$query = "SELECT DISTINCT event_title, event_link, event_date FROM" .
+		" `events` WHERE (event_date > NOW()) ORDER BY event_date;";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iResults = mysqli_num_rows ($result);
+	if ($iResults > 0)
+	{
+		$iEvents = 0;
+		while ($row = mysqli_fetch_assoc ($result))
+		{
+			$iEvents++;
+			$sTitle = str_replace ('SteamLUG ', '', $row['event_title']);
+			$sLink = $row['event_link'];
+			$sDate = $row['event_date'];
+			$sWhen = ltrim (substr ($sDate, 8, 2), '0') . ' ' .
+				date ('M', strtotime ($sDate)) . ' ' .
+				substr ($sDate, 11, -3) . ' UTC';
+			if ($iEvents == 1)
+			{
+				if ($sReturn != '') { $sReturn .= ' '; }
+				$sReturn .= 'Next up is "' . $sTitle . '" on ' .
+					$sWhen . ' (' . $sLink . ').';
+			} else if ($iEvents <= 3) {
+				$sReturn .= ' Then "' . $sTitle . '" on ' . $sWhen . '.';
+			} else {
+				$sReturn .= ' etc.';
+				break;
+			}
+		}
+	}
+
+	/*** Nothing? ***/
+	if ($sReturn == '') { $sReturn = 'No upcoming events.'; }
+
+	return ($sReturn);
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1155,6 +1209,11 @@ do {
 										Say ($sRecipient, 'Usage: !time <"UTC"|two-letter' .
 											' country code|timezone name>');
 									}
+									break;
+								case '!events':
+									$sEvents = UpcomingEvents();
+									Say ($sRecipient, ColorThis ('events') . ' ' . $sEvents);
+									break;
 							}
 						}
 						break;
