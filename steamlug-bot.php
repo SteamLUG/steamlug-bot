@@ -837,8 +837,8 @@ function UpcomingEvents ()
 
 	/*** Right now. ***/
 	$query = "SELECT DISTINCT event_title, event_link, event_date FROM" .
-		" `events` WHERE (event_date > DATE(NOW()-INTERVAL 2 HOUR)) AND" .
-		" (event_date < NOW());";
+		" `events` WHERE (event_date > DATE_SUB(UTC_TIMESTAMP()," .
+		" INTERVAL 2 HOUR)) AND (event_date < UTC_TIMESTAMP());";
 	$result = mysqli_query ($GLOBALS['link'], $query);
 	if (mysqli_num_rows ($result) == 1)
 	{
@@ -849,7 +849,7 @@ function UpcomingEvents ()
 
 	/*** Future. ***/
 	$query = "SELECT DISTINCT event_title, event_link, event_date FROM" .
-		" `events` WHERE (event_date > NOW()) ORDER BY event_date;";
+		" `events` WHERE (event_date > UTC_TIMESTAMP()) ORDER BY event_date;";
 	$result = mysqli_query ($GLOBALS['link'], $query);
 	$iResults = mysqli_num_rows ($result);
 	if ($iResults > 0)
