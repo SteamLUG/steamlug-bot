@@ -270,6 +270,19 @@ function EventsToMySQL ($arEvents)
 
 		$sCategory = (string)$value['category'];
 
+		/*** Extract event datetime. ***/
+		$regex = '/[0-9]{4}-[0-9]{2}-[0-9]{2} at [0-9]{2}:[0-9]{2} UTC/';
+		$arMatches = array();
+		$sEDateTime = '1000-01-01 00:00:00'; /*** Fallback. ***/
+		if (preg_match_all ($regex, $sText, $arMatches) == 1)
+		{
+			$arSearch = array (' at ', ' UTC');
+			$arReplace = array (' ', ':00');
+			$sEDateTime = str_replace ($arSearch, $arReplace, $arMatches[0][0]);
+		} else {
+			GetLog ('Could not extract 1 datetime from: ' . $sText);
+		}
+
 		/*** Prevent duplicates. Here we do not use INSERT IGNORE ***/
 		/*** because of the AUTO_INCREMENT column. ***/
 		if (Found ('events', 'event_guid', $sGuid) == FALSE)
@@ -280,7 +293,8 @@ function EventsToMySQL ($arEvents)
 				$sText . "', '" .
 				$sLink . "', '" .
 				$sGuid . "', '" .
-				$sDateTime . "');";
+				$sDateTime . "', '" .
+				$sEDateTime . "');";
 			$result = mysqli_query ($GLOBALS['link'], $query);
 		}
 	}
