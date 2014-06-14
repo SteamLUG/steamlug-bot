@@ -492,6 +492,66 @@ function GetURL ($sUrl)
 	return ($sData);
 }
 /***********************************************/
+function NewHumbleTitlesToMySQL ()
+/***********************************************/
+{
+	$sTitleMain = GetTitle ('https://www.humblebundle.com/');
+	$sTitleMain = mysqli_real_escape_string ($GLOBALS['link'], $sTitleMain);
+	$sTitleWeekly = GetTitle ('https://www.humblebundle.com/weekly');
+	$sTitleWeekly = mysqli_real_escape_string ($GLOBALS['link'], $sTitleWeekly);
+
+	if ((strpos ($sTitleMain, 'Humble') !== FALSE) &&
+		(strpos ($sTitleWeekly, 'Humble') !== FALSE))
+	{
+		$iInsertMain = 0;
+		$iInsertWeekly = 0;
+		$iSaid = 0;
+		$sDateTime = DateTime();
+
+		if (EmptyTable ('humbletitles') == TRUE)
+		{
+			$iInsertMain = 1;
+			$iInsertWeekly = 1;
+			$iSaid = 1;
+		} else {
+			/*** main ***/
+			$query = "SELECT humbletitles_title FROM `humbletitles` WHERE" .
+				" (humbletitles_weekly='0') ORDER BY humbletitles_date DESC LIMIT 1;";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+			$row = mysqli_fetch_assoc ($result);
+			if ($row['humbletitles_title'] != $sTitleMain) { $iInsertMain = 1; }
+
+			/*** weekly ***/
+			$query = "SELECT humbletitles_title FROM `humbletitles` WHERE" .
+				" (humbletitles_weekly='1') ORDER BY humbletitles_date DESC LIMIT 1;";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+			$row = mysqli_fetch_assoc ($result);
+			if ($row['humbletitles_title'] != $sTitleWeekly) { $iInsertWeekly = 1; }
+		}
+		if ($iInsertMain == 1)
+		{
+			$query = "INSERT INTO `humbletitles` VALUES (NULL, '" .
+				"0" . "', '" .
+				$sTitleMain . "', '" .
+				$sDateTime . "', '" .
+				$iSaid . "');";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+		}
+		if ($iInsertWeekly == 1)
+		{
+			$query = "INSERT INTO `humbletitles` VALUES (NULL, '" .
+				"1" . "', '" .
+				$sTitleWeekly . "', '" .
+				$sDateTime . "', '" .
+				$iSaid . "');";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+		}
+	} else {
+		GetLog ('Unexpected Humble titles "' . $sTitleMain .
+			'" and "' . $sTitleWeekly . '".');
+	}
+}
+/***********************************************/
 
 	ConnectToMySQL();
 ?>

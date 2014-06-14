@@ -900,6 +900,36 @@ function GetSteamInfoAPI ($sCustomURL)
 	}
 }
 /***********************************************/
+function CheckNewHumbleTitles ()
+/***********************************************/
+{
+	$query = "SELECT * FROM `humbletitles` WHERE (humbletitles_said='0');";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	while ($row = mysqli_fetch_assoc ($result))
+	{
+		$iId = $row['humbletitles_id'];
+		switch ($row['humbletitles_weekly'])
+		{
+			case 0: $sPage = 'main';
+				$sURL = 'https://www.humblebundle.com/'; break;
+			case 1: $sPage = 'weekly';
+				$sURL = 'https://www.humblebundle.com/weekly'; break;
+		}
+		$sTitle = $row['humbletitles_title'];
+		$arSearch = array ('Humble Bundle: ', 'Humble Weekly Bundle: ',
+			' (pay what you want and help charity)');
+		$arReplace = array ('', '', '');
+		$sTitle = str_replace ($arSearch, $arReplace, $sTitle);
+		Say ($GLOBALS['channel'], ColorThis ('humble') .
+			' (<title> change for ' . $sPage . ') ' . $sTitle . ' ' . $sURL);
+
+		/*** Said. ***/
+		$query_update = "UPDATE `humbletitles` SET humbletitles_said='1' WHERE" .
+			" (humbletitles_id='" . $iId . "');";
+		$result_update = mysqli_query ($GLOBALS['link'], $query_update);
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -938,6 +968,7 @@ do {
 					/*** CheckNews(); ***/
 					CheckEvents();
 					CheckNewReleases();
+					CheckNewHumbleTitles();
 				}
 			}
 		}

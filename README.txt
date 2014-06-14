@@ -17,6 +17,8 @@ Checks for (and displays) new Tweets.
 
 Checks for (and displays) new game/DLC releases on Steam that support Linux.
 
+Checks for (and displays) new Humble Bundles and Humble Weekly sales.
+
 Replies to:
 - !events
 - !time <"UTC"|two-letter country code|timezone name>
