@@ -291,55 +291,6 @@ function Say ($sTo, $sSay)
 	$GLOBALS['idlesince'] = time();
 }
 /***********************************************/
-function GetTitle ($sURL)
-/***********************************************/
-{
-	$sHTML = GetURL ($sURL);
-	$doc = new DOMDocument();
-	@$doc->loadHTML(mb_convert_encoding($sHTML, 'HTML-ENTITIES', 'UTF-8'));
-	$nodes = $doc->getElementsByTagName('title');
-	if ($nodes->length != 0)
-	{
-		$sTitle = $nodes->item(0)->nodeValue;
-		/*** Convert \r, \n, \t and \f to spaces. ***/
-		$sTitle = preg_replace ('/\s+/', ' ', $sTitle);
-		/*** Remove space, \t, \n, \r, \0 and \x0B from the ***/
-		/*** beginning and end. ***/
-		$sTitle = trim ($sTitle);
-		if (strlen ($sTitle) > $GLOBALS['maxtitle'])
-		{
-			$sTitle = substr ($sTitle, 0, $GLOBALS['maxtitle']) . '...';
-		}
-	} else {
-		$sTitle = FALSE;
-	}
-
-	return ($sTitle);
-}
-/***********************************************/
-function GetURL ($sUrl)
-/***********************************************/
-{
-	$ch = curl_init();
-	curl_setopt ($ch, CURLOPT_USERAGENT, $GLOBALS['useragent']);
-	curl_setopt ($ch, CURLOPT_HEADER, FALSE);
-	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-	curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-	curl_setopt ($ch, CURLOPT_URL, $sUrl);
-	curl_setopt ($ch, CURLOPT_RANGE, '0-1048576'); /*** 1M max. ***/
-	$sData = curl_exec ($ch);
-	curl_close ($ch);
-
-	/*** For gzip compressed data. ***/
-	if (($sData[0] == chr(0x1f)) && ($sData[1] == chr(0x8b)))
-	{
-		$sData = gzinflate (substr ($sData, 10, -8));
-	}
-
-	return ($sData);
-}
-/***********************************************/
 function ValidURL ($sUrl)
 /***********************************************/
 {
@@ -882,6 +833,71 @@ function UpcomingEvents ()
 	if ($sReturn == '') { $sReturn = 'No upcoming events.'; }
 
 	return ($sReturn);
+}
+/***********************************************/
+function Wikipedia ($sSearch)
+/***********************************************/
+{
+	$enWikiS = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=';
+	$enWikiE = '&format=xml&limit=10';
+	$sPage = GetPage ($enWikiS . rawurlencode ($sSearch) . $enWikiE);
+	$xmlpage = simplexml_load_string ($sPage);
+	$iResults = count ($xmlpage->Section->Item);
+	if ($iResults != 0)
+	{
+		$arWiki = array();
+		$sRest = '';
+		for ($iCount = 0; $iCount < $iResults; $iCount++)
+		{
+			if ($iCount == 0)
+			{
+				$arWiki['desc'] = $xmlpage->Section->Item[0]->Description;
+			} else {
+				if ($iCount > 1) { $sRest = $sRest . ', '; }
+				$sRest = $sRest . '"' . $xmlpage->Section->Item[$iCount]->Text . '"';
+			}
+		}
+		$arWiki['rest'] = $sRest;
+	} else { $arWiki = FALSE; }
+	return ($arWiki);
+}
+/***********************************************/
+function GetSteamInfoXML ($sCustomURL)
+/***********************************************/
+{
+	/*** Deprecated. ***/
+
+	ini_set ('user_agent', $GLOBALS['useragent']);
+	$xmlXML = simplexml_load_file ('http://steamcommunity.com/id/' .
+		$sCustomURL . '/?xml=1', NULL, LIBXML_NOCDATA);
+	if ($xmlXML === FALSE)
+	{
+		print ('[ WARN ] Could not retrieve XML data!' . "\n");
+	}
+	$arXML = json_decode (json_encode ((array)$xmlXML), TRUE);
+
+	return ($arXML);
+}
+/***********************************************/
+function GetSteamInfoAPI ($sCustomURL)
+/***********************************************/
+{
+	$sURL = $GLOBALS['steam_api_base'] . 'ResolveVanityURL/v0001/' .
+		'?key=' . $GLOBALS['steam_api_key'] . '&vanityurl=' . $sCustomURL;
+	$jsn = GetPage ($sURL);
+	$arResult = json_decode ($jsn, TRUE);
+	if ($arResult['response']['success'] == 1)
+	{
+		$sSteamId = $arResult['response']['steamid'];
+		$sURL = $GLOBALS['steam_api_base'] . 'GetPlayerSummaries/v0002/' .
+			'?key=' . $GLOBALS['steam_api_key'] . '&steamids=' . $sSteamId;
+		$jsn = GetPage ($sURL);
+		$arResult = json_decode ($jsn, TRUE);
+
+		return ($arResult);
+	} else {
+		return (FALSE);
+	}
 }
 /***********************************************/
 
