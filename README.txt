@@ -11,7 +11,9 @@ FAQ
 
 Checks for (and displays) new SteamLUG RSS feed entries.
 
-Gives title information about URLs.
+Gives title information about URLs (in $GLOBALS['needurlinfo']).
+
+Provides the original poster's comment for Imgur images, if available.
 
 Checks for (and displays) new Tweets.
 
@@ -20,6 +22,7 @@ Checks for (and displays) new game/DLC releases on Steam that support Linux.
 Checks for (and displays) new Humble Bundles and Humble Weekly sales.
 
 Replies to:
+- !help
 - !events
 - !time <"UTC"|two-letter country code|timezone name>
 - !seen <IRC nick>

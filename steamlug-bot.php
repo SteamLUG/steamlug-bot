@@ -173,6 +173,22 @@ function CheckEvents ()
 	}
 }
 /***********************************************/
+function Imgur ($sRecipient, $sMatch)
+/***********************************************/
+{
+	foreach ($GLOBALS['imgur'] as $key=>$value)
+	{
+		$sMatch = str_replace ($value, '', $sMatch);
+	}
+	$sCode = substr ($sMatch, 0, strpos ($sMatch, '.'));
+	$sTitle = GetTitle ('http://imgur.com/' . $sCode);
+	if (($sTitle != FALSE) && ($sTitle != 'imgur: the simple image sharer'))
+	{
+		$sTitle = str_replace (' - Imgur', '', $sTitle);
+		Say ($sRecipient, ColorThis ('imgur') . ' ' . $sTitle);
+	}
+}
+/***********************************************/
 function ExtractURLInfo ($sRecipient, $sSaid)
 /***********************************************/
 {
@@ -189,6 +205,15 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 			if (ValidURL ($sMatch) == 1)
 			{
 				$sMatch = GetFinalURL ($sMatch);
+
+				/*** Imgur image comment. ***/
+				foreach ($GLOBALS['imgur'] as $key=>$value)
+				{
+					if ($value == substr ($sMatch, 0, strlen ($value)))
+						{ Imgur ($sRecipient, $sMatch); }
+				}
+
+				/*** Title information. ***/
 				foreach ($GLOBALS['needurlinfo'] as $key=>$value)
 				{
 					if ($value == substr ($sMatch, 0, strlen ($value)))
@@ -1260,6 +1285,10 @@ do {
 								case '!events':
 									$sEvents = UpcomingEvents();
 									Say ($sRecipient, ColorThis ('events') . ' ' . $sEvents);
+									break;
+								case '!help':
+									Say ($sRecipient, 'See README.txt: ' .
+										$GLOBALS['botsource']);
 									break;
 							}
 						}
