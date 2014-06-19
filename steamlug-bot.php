@@ -246,6 +246,25 @@ function ExtractThanks ($sRecipient, $sNick, $sSaid)
 	}
 }
 /***********************************************/
+function ShowTweet ($sRecipient, $arTweet)
+/***********************************************/
+{
+	/*** Similar to LastTweets(). Keeping them separated, because one ***/
+	/*** of the APIs may change. ***/
+
+	$tweet_id = $arTweet['id_str'];
+	$tweet_date = date ('Y-m-d H:i:s',
+		strtotime ($arTweet['created_at'] . 'UTC'));
+	$tweet_text = $arTweet['text'];
+	$tweet_user = $arTweet['user']['screen_name'];
+
+	Say ($sRecipient, ColorThis ('tweet') . ' ' .
+		html_entity_decode (strip_tags ($tweet_text),
+		ENT_QUOTES, 'utf-8') .
+		' (' . $tweet_date . ' - https://twitter.com/' .
+		$tweet_user . '/status/' . $tweet_id . ')');
+}
+/***********************************************/
 function LastTweets ($sRecipient, $arTweets)
 /***********************************************/
 {
@@ -1077,27 +1096,42 @@ do {
 								case '!t':
 									if (isset ($exsay[1]))
 									{
-										$sTwitterName = $exsay[1];
-										if (isset ($exsay[2]))
+										if (is_numeric ($exsay[1]))
 										{
-											$iLastAmount = intval ($exsay[2]);
-											if ($iLastAmount > 3) { $iLastAmount = 3; }
-											if ($iLastAmount < 1) { $iLastAmount = 1; }
+											$sTweetId = $exsay[1];
+											$arTweet = GetTweetsArray ('', 0, $sTweetId);
+											if (isset ($arTweet['errors']))
+											{
+												Say ($sRecipient, '(failed; "' .
+													$arTweet['errors'][0]['message'] . '")');
+											} else {
+												ShowTweet ($sRecipient, $arTweet);
+											}
 										} else {
-											$iLastAmount = 1;
-										}
-										$arTweets = GetTweetsArray ($sTwitterName, $iLastAmount);
-										if (isset ($arTweets['error']))
-										{
-											Say ($sRecipient, '(failed; "' .
-												$arTweets['error'] . '")');
-										} else if (empty ($arTweets)) {
-											Say ($sRecipient, '(failed; no such user?)');
-										} else {
-											LastTweets ($sRecipient, $arTweets);
+											$sTwitterName = $exsay[1];
+											if (isset ($exsay[2]))
+											{
+												$iLastAmount = intval ($exsay[2]);
+												if ($iLastAmount > 3) { $iLastAmount = 3; }
+												if ($iLastAmount < 1) { $iLastAmount = 1; }
+											} else {
+												$iLastAmount = 1;
+											}
+											$arTweets = GetTweetsArray
+												($sTwitterName, $iLastAmount, '');
+											if (isset ($arTweets['errors']))
+											{
+												Say ($sRecipient, '(failed; "' .
+													$arTweets['errors'][0]['message'] . '")');
+											} else if (empty ($arTweets)) {
+												Say ($sRecipient, '(failed; no such user?)');
+											} else {
+												LastTweets ($sRecipient, $arTweets);
+											}
 										}
 									} else {
-										Say ($sRecipient, 'Usage: !t <Twitter name> [1-3]');
+										Say ($sRecipient, 'Usage: !t <Twitter name>' .
+											' [1-3] | !t <Tweet id>');
 									}
 									break;
 								case '!ping':

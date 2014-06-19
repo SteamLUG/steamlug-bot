@@ -52,20 +52,30 @@ function Authorization ($arOauth)
 	return ($sResult);
 }
 /***********************************************/
-function GetTweetsArray ($sName, $iAmount)
+function GetTweetsArray ($sName, $iAmount, $sTweetId)
 /***********************************************/
 {
-	$sUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
+	if ($sTweetId == '')
+	{
+		$sUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
+	} else {
+		$sUrl = 'https://api.twitter.com/1.1/statuses/show.json';
+	}
 
-	$arOauth = array (
-		'screen_name' => $sName,
-		'count' => $iAmount,
-		'oauth_consumer_key' => $GLOBALS['twitter_api_key'],
-		'oauth_nonce' => time(),
-		'oauth_signature_method' => 'HMAC-SHA1',
-		'oauth_token' => $GLOBALS['twitter_oauth_token'],
-		'oauth_timestamp' => time(),
-		'oauth_version' => '1.0');
+	$arOauth = array();
+	if ($sTweetId == '')
+	{
+		$arOauth['screen_name'] = $sName;
+		$arOauth['count'] = $iAmount;
+	} else {
+		$arOauth['id'] = $sTweetId;
+	}
+	$arOauth['oauth_consumer_key'] = $GLOBALS['twitter_api_key'];
+	$arOauth['oauth_nonce'] = time();
+	$arOauth['oauth_signature_method'] = 'HMAC-SHA1';
+	$arOauth['oauth_token'] = $GLOBALS['twitter_oauth_token'];
+	$arOauth['oauth_timestamp'] = time();
+	$arOauth['oauth_version'] = '1.0';
 
 	$sBase = BaseString ($sUrl, 'GET', $arOauth);
 	$sKey = rawurlencode ($GLOBALS['twitter_api_secret']) .
@@ -74,19 +84,22 @@ function GetTweetsArray ($sName, $iAmount)
 		$sBase, $sKey, TRUE));
 	$arOauth['oauth_signature'] = $oauth_signature;
 
+	$ch = curl_init();
 	$header = array (Authorization ($arOauth), 'Expect:');
-	$options = array (
-		CURLOPT_HTTPHEADER => $header,
-		CURLOPT_HEADER => FALSE,
-		CURLOPT_URL => $sUrl . '?screen_name=' .
-			rawurlencode ($sName) . '&count=' . $iAmount,
-		CURLOPT_RETURNTRANSFER => TRUE,
-		CURLOPT_SSL_VERIFYPEER => FALSE);
-
-	$feed = curl_init();
-	curl_setopt_array ($feed, $options);
-	$jsn = curl_exec ($feed);
-	curl_close ($feed);
+	curl_setopt ($ch, CURLOPT_HTTPHEADER, $header);
+	curl_setopt ($ch, CURLOPT_HEADER, FALSE);
+	if ($sTweetId == '')
+	{
+		curl_setopt ($ch, CURLOPT_URL, $sUrl . '?screen_name=' .
+			rawurlencode ($sName) . '&count=' . $iAmount);
+	} else {
+		curl_setopt ($ch, CURLOPT_URL, $sUrl . '?id=' .
+			rawurlencode ($sTweetId));
+	}
+	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+	$jsn = curl_exec ($ch);
+	curl_close ($ch);
 
 	return (json_decode ($jsn, TRUE));
 }

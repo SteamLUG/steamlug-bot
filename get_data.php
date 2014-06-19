@@ -4,7 +4,7 @@
 
 	foreach ($GLOBALS['twitter_names'] as $sName)
 	{
-		$arTweets = GetTweetsArray ($sName, 10);
+		$arTweets = GetTweetsArray ($sName, 10, '');
 		TweetsToMySQL ($arTweets);
 	}
 /***

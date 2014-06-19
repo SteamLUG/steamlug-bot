@@ -28,7 +28,7 @@ Replies to:
 - !seen <IRC nick>
 - !s <IRC nick> | !s set <Steam customURL /id/> | !s me
 - !ping [text]
-- !t <Twitter name> [1-3]
+- !t <Twitter name> [1-3] | !t <Tweet id>
 - !w <Wikipedia search>
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
