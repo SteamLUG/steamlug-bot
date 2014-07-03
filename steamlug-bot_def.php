@@ -514,7 +514,9 @@ function NewHumbleTitlesToMySQL ()
 	$sTitleWeekly = mysqli_real_escape_string ($GLOBALS['link'], $sTitleWeekly);
 
 	if ((strpos ($sTitleMain, 'Humble') !== FALSE) &&
-		(strpos ($sTitleWeekly, 'Humble') !== FALSE))
+		(strpos ($sTitleWeekly, 'Humble') !== FALSE) &&
+		(strpos ($sTitleMain, 'Error') === FALSE) &&
+		(strpos ($sTitleWeekly, 'Error') === FALSE))
 	{
 		$iInsertMain = 0;
 		$iInsertWeekly = 0;
