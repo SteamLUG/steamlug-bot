@@ -324,6 +324,11 @@ function QuitMessage ($sMessage)
 function Say ($sTo, $sSay)
 /***********************************************/
 {
+	/*** Never allow newlines in $sSay. ***/
+	$arSearch = array ('\r', '\n', chr(10), chr(13));
+	$arReplace = array (' ', ' ', ' ', ' ');
+	$sSay = str_replace ($arSearch, $arReplace, $sSay);
+
 	if (($sTo[0] == '#') || ($sTo == 'NickServ'))
 	{
 		$sType = 'PRIVMSG'; /*** To a channel. ***/
