@@ -259,7 +259,7 @@ function EventsToMySQL ($arEvents)
 		/*** Extract event datetime. ***/
 		$regex = '/[0-9]{4}-[0-9]{2}-[0-9]{2} at [0-9]{2}:[0-9]{2} UTC/';
 		$arMatches = array();
-		$sEDateTime = '1000-01-01 00:00:00'; /*** Fallback. ***/
+		$sEDateTime = $GLOBALS['unknown_datetime']; /*** Fallback. ***/
 		if (preg_match_all ($regex, $sText, $arMatches) == 1)
 		{
 			$arSearch = array (' at ', ' UTC');
@@ -334,6 +334,7 @@ function NewReleasesToMySQL ($arNewReleases)
 {
 	if (EmptyTable ('newreleases') == TRUE)
 		{ $iSay = 1; } else { $iSay = 0; }
+	$sDateTime = DateTime();
 
 	/*** Not using tabs: topsellers, specials, under_ten ***/
 	if (($arNewReleases['status'] == 1) &&
@@ -410,7 +411,8 @@ function NewReleasesToMySQL ($arNewReleases)
 					$iWindows . "', '" .
 					$iMac . "', '" .
 					$iLinux . "', '" .
-					$iSaid . "');";
+					$iSaid . "', '" .
+					$sDateTime . "');";
 				$result_insert = mysqli_query ($GLOBALS['link'], $query_insert);
 				if ($result_insert == FALSE)
 				{
@@ -422,7 +424,8 @@ function NewReleasesToMySQL ($arNewReleases)
 
 				/*** We don't want to keep fetching data. ***/
 				$query_insert = "INSERT INTO `newreleases` VALUES ('" .
-					$sID . "', 'failed', 'failed', '', 0, 0, 0, 1);";
+					$sID . "', 'failed', 'failed', '', 0, 0, 0, 1, '" .
+					$GLOBALS['unknown_datetime'] . "');";
 				$result_insert = mysqli_query ($GLOBALS['link'], $query_insert);
 				if ($result_insert == FALSE)
 				{
