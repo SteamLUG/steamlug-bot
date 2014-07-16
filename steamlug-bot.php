@@ -759,8 +759,12 @@ function CheckNewReleases ()
 {
 	$query = "SELECT * FROM `newreleases` WHERE (newrelease_said='0');";
 	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iResults = mysqli_num_rows ($result);
+	$iRowCount = 0;
 	while ($row = mysqli_fetch_assoc ($result))
 	{
+		$iRowCount++;
+
 		$sId = $row['newrelease_id'];
 		$sType = $row['newrelease_type'];
 		$sName = $row['newrelease_name'];
@@ -775,6 +779,9 @@ function CheckNewReleases ()
 		$query_update = "UPDATE `newreleases` SET newrelease_said='1' WHERE" .
 			" (newrelease_id='" . $sId . "');";
 		$result_update = mysqli_query ($GLOBALS['link'], $query_update);
+
+		/*** Prevent the bot from flooding; wait 1 second. ***/
+		if ($iRowCount < $iResults) { sleep (1); }
 	}
 }
 /***********************************************/
