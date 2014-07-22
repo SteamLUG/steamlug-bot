@@ -427,6 +427,14 @@ function SetCustomURL ($sNick, $sCustomURL)
 {
 	if ($sCustomURL == '"none"') { $sCustomURL = 'none'; }
 	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+
+	/*** Remove URL parts if necessary. ***/
+	$arSearch = array ('http://steamcommunity.com/id/',
+		'steamcommunity.com/id/', '/id/');
+	$arReplace = array ('', '', '');
+	$sCustomURL = str_replace ($arSearch, $arReplace, $sCustomURL);
+	if ($sCustomURL == '') { $sCustomURL = 'none'; }
+
 	$sCustomURLE = mysqli_real_escape_string ($GLOBALS['link'], $sCustomURL);
 	$sReturn = 'failed';
 
