@@ -425,7 +425,6 @@ function CapReq ()
 function SetCustomURL ($sNick, $sCustomURL)
 /***********************************************/
 {
-	if ($sCustomURL == '"none"') { $sCustomURL = 'none'; }
 	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
 
 	/*** Remove URL parts if necessary. ***/
@@ -1288,7 +1287,7 @@ do {
 														}
 													}
 													break;
-												case "none":
+												case 'none':
 													Say ($sRecipient, ColorThis ('steam') . ' Sorry, ' .
 														$sTargetUser .
 														' prefers not to share Steam information.');
