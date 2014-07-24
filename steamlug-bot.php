@@ -903,7 +903,7 @@ function Wikipedia ($sSearch)
 {
 	$enWikiS = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=';
 	$enWikiE = '&format=xml&limit=10';
-	$sPage = GetPage ($enWikiS . rawurlencode ($sSearch) . $enWikiE);
+	$sPage = GetPage ($enWikiS . rawurlencode ($sSearch) . $enWikiE, 0);
 	$xmlpage = simplexml_load_string ($sPage);
 	$iResults = count ($xmlpage->Section->Item);
 	if ($iResults != 0)
@@ -947,14 +947,14 @@ function GetSteamInfoAPI ($sCustomURL)
 {
 	$sURL = $GLOBALS['steam_api_base'] . 'ResolveVanityURL/v0001/' .
 		'?key=' . $GLOBALS['steam_api_key'] . '&vanityurl=' . $sCustomURL;
-	$jsn = GetPage ($sURL);
+	$jsn = GetPage ($sURL, 0);
 	$arResult = json_decode ($jsn, TRUE);
 	if ($arResult['response']['success'] == 1)
 	{
 		$sSteamId = $arResult['response']['steamid'];
 		$sURL = $GLOBALS['steam_api_base'] . 'GetPlayerSummaries/v0002/' .
 			'?key=' . $GLOBALS['steam_api_key'] . '&steamids=' . $sSteamId;
-		$jsn = GetPage ($sURL);
+		$jsn = GetPage ($sURL, 0);
 		$arResult = json_decode ($jsn, TRUE);
 
 		return ($arResult);
@@ -990,6 +990,54 @@ function CheckNewHumbleTitles ()
 		$query_update = "UPDATE `humbletitles` SET humbletitles_said='1' WHERE" .
 			" (humbletitles_id='" . $iId . "');";
 		$result_update = mysqli_query ($GLOBALS['link'], $query_update);
+	}
+}
+/***********************************************/
+function SteamStat ($sRecipient)
+/***********************************************/
+{
+	$jsn = GetPage ($GLOBALS['steamstatus'], 1);
+	$arStat = json_decode ($jsn, TRUE);
+	if ($arStat['success'] != '1')
+	{
+		Say ($sRecipient, ColorThis ('steamstatus') . ' Sorry, currently' .
+			' unavailable.');
+	} else {
+		$sStatTime = gmdate ('H:i:s', $arStat['time']) . ' UTC';
+		$sPeopleOnline = $arStat['services']['online']['title'];
+		if (($sPeopleOnline == '0') || (strtolower ($sPeopleOnline) == 'unknown'))
+			{ $sPeopleOnline = 'unknown'; }
+		$sInfo = 'Store status: ' .
+			$arStat['services']['store']['status'] . ' | ' .
+			'Community status: ' .
+			$arStat['services']['community']['status'] . ' | ' .
+			'People online: ' .
+			$sPeopleOnline . ' | ' .
+			'SteamDB database/client: ' .
+			$arStat['services']['database']['status'] . '/' .
+			$arStat['services']['steam']['status'];
+		Say ($sRecipient, ColorThis ('steamstatus') .
+			' (' . $sStatTime . ') ' . $sInfo . ' (source: steamstat.us)');
+		$sInfo = 'Australia: ' .
+			$arStat['services']['cm-AU']['status'] . ' (' .
+			$arStat['services']['cm-AU']['title'] . ') | ' .
+			'Singapore: ' .
+			$arStat['services']['cm-SG']['status'] . ' (' .
+			$arStat['services']['cm-SG']['title'] . ') | ' .
+			'Europe: ' .
+			$arStat['services']['cm-EU']['status'] . ' (' .
+			$arStat['services']['cm-EU']['title'] . ') | ' .
+			'United States: ' .
+			$arStat['services']['cm-US']['status'] . ' (' .
+			$arStat['services']['cm-US']['title'] . ') | ' .
+			'China: ' .
+			$arStat['services']['cm-CN']['status'] . ' (' .
+			$arStat['services']['cm-CN']['title'] . ') | ' .
+			'Netherlands: ' .
+			$arStat['services']['cm-NL']['status'] . ' (' .
+			$arStat['services']['cm-NL']['title'] . ')';
+		Say ($sRecipient, ColorThis ('steamstatus') .
+			' (' . $sStatTime . ') ' . $sInfo . ' (source: steamstat.us)');
 	}
 }
 /***********************************************/
@@ -1342,6 +1390,14 @@ do {
 								case '!help':
 									Say ($sRecipient, 'See README.txt: ' .
 										$GLOBALS['botsource']);
+									break;
+								case '!steamstatus':
+								case '!issteamdown':
+								case '!issteamup':
+									if (($exsay[0] == '!issteamdown') ||
+										($exsay[0] == '!issteamup'))
+										{ Say ($sRecipient, 'Please use: !steamstatus'); }
+									SteamStat ($sRecipient);
 									break;
 							}
 						}

@@ -27,7 +27,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.43';
+	$GLOBALS['botversion'] = '0.44';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['botsteam'] = 'http://steamcommunity.com/groups/steamlug';
 	$GLOBALS['idlesince'] = time();
@@ -36,6 +36,8 @@
 	$GLOBALS['maxlinelength'] = 520;
 	$GLOBALS['useragent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux i686;' .
 		' rv:28.0) Gecko/20100101 Firefox/28.0';
+	$GLOBALS['useragentreal'] = 'steamlug-bot';
+	$GLOBALS['steamstatus'] = 'SECRET';
 	$GLOBALS['maxtitle'] = 200;
 	$GLOBALS['maxnews'] = 200;
 	$GLOBALS['maxevent'] = 200;

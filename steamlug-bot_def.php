@@ -125,7 +125,7 @@ function TweetsToMySQL ($arTweets)
 	}
 }
 /***********************************************/
-function GetPage ($sUrl)
+function GetPage ($sUrl, $iRealAgent)
 /***********************************************/
 {
 	$ch = curl_init ($sUrl);
@@ -138,7 +138,9 @@ function GetPage ($sUrl)
 	curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, TRUE);
 	curl_setopt ($ch, CURLOPT_MAXREDIRS, 4);
 	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt ($ch, CURLOPT_USERAGENT, $GLOBALS['useragent']);
+	if ($iRealAgent == 1)
+		{ curl_setopt ($ch, CURLOPT_USERAGENT, $GLOBALS['useragentreal']); }
+			else { curl_setopt ($ch, CURLOPT_USERAGENT, $GLOBALS['useragent']); }
 	curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 10);
 	$sPage = curl_exec ($ch);
 	curl_close ($ch);
@@ -315,7 +317,7 @@ function EmptyTable ($sTable)
 function GetNewReleases ()
 /***********************************************/
 {
-	$jsn = GetPage ('http://store.steampowered.com/api/getappsincategory/?category=cat_newreleases');
+	$jsn = GetPage ('http://store.steampowered.com/api/getappsincategory/?category=cat_newreleases', 0);
 
 	return (json_decode ($jsn, TRUE));
 }
@@ -324,7 +326,7 @@ function GetAppDetails ($sID)
 /***********************************************/
 {
 	$jsn = GetPage ('http://store.steampowered.com/api/appdetails/?appids=' .
-		$sID);
+		$sID, 0);
 
 	return (json_decode ($jsn, TRUE));
 }
