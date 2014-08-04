@@ -499,12 +499,29 @@ function GetURL ($sUrl)
 	curl_setopt ($ch, CURLOPT_URL, $sUrl);
 	curl_setopt ($ch, CURLOPT_RANGE, '0-1048576'); /*** 1M max. ***/
 	$sData = curl_exec ($ch);
+
+	/* YouTube occasionally(!) redirects http to https.
+	 * This means that, in addition to calling GetFinalURL() before using
+	 * this GetURL() function, we also need to check for redirects here.
+	 */
+	$arResult = curl_getinfo ($ch);
+	if ($arResult['http_code'] == '301')
+	{
+		curl_setopt ($ch, CURLOPT_URL, $arResult['redirect_url']);
+		$sData = curl_exec ($ch);
+	}
+
 	curl_close ($ch);
 
-	/*** For gzip compressed data. ***/
-	if (($sData[0] == chr(0x1f)) && ($sData[1] == chr(0x8b)))
+	if (strlen ($sData) == 0) /*** In case we /still/ got nothing. ***/
 	{
-		$sData = gzinflate (substr ($sData, 10, -8));
+		$sData = FALSE;
+	} else {
+		/*** For gzip compressed data. ***/
+		if (($sData[0] == chr(0x1f)) && ($sData[1] == chr(0x8b)))
+		{
+			$sData = gzinflate (substr ($sData, 10, -8));
+		}
 	}
 
 	return ($sData);
