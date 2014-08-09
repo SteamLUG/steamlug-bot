@@ -238,6 +238,17 @@ function EventsToMySQL ($arEvents)
 
 		$sText = (string)$value['description'];
 		$sText = html_entity_decode (strip_tags ($sText), ENT_QUOTES, 'utf-8');
+
+		/*** In case the description contains errors. ***/
+		if ($sText == '')
+		{
+			$sText = (string)$value['description'];
+			$iStart = strpos ($sText, '<p>') + strlen ('<p>');
+			$sText = substr ($sText, $iStart, strlen ($sText) -
+				$iStart - strlen ('</p>'));
+			$sText = html_entity_decode (strip_tags ($sText), ENT_QUOTES, 'utf-8');
+		}
+
 		$sText = preg_replace ('/\r|\n/', ' ', $sText);
 		$sText = preg_replace ('/\s+/', ' ', $sText);
 		$sText = mysqli_real_escape_string ($GLOBALS['link'], $sText);
