@@ -432,6 +432,7 @@ function SetCustomURL ($sNick, $sCustomURL)
 		'steamcommunity.com/id/', '/id/');
 	$arReplace = array ('', '', '');
 	$sCustomURL = str_replace ($arSearch, $arReplace, $sCustomURL);
+	$sCustomURL = rtrim ($sCustomURL, '/');
 	if ($sCustomURL == '') { $sCustomURL = 'none'; }
 
 	$sCustomURLE = mysqli_real_escape_string ($GLOBALS['link'], $sCustomURL);
