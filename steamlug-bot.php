@@ -470,19 +470,49 @@ function GetCustomURL ($sNick)
 /***********************************************/
 {
 	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+	$arReturn = array();
+	$arReturn['url'] = FALSE;
+	$arReturn['with'] = FALSE;
 
-	$query = "SELECT customurl_url FROM `customurl` WHERE (customurl_nick='" .
-		$sNickE . "');";
+	/*** nick ***/
+	$query = "SELECT customurl_url FROM `customurl` WHERE" .
+		" (customurl_nick='" . $sNickE . "');";
 	$result = mysqli_query ($GLOBALS['link'], $query);
 	if (mysqli_num_rows ($result) > 0)
 	{
 		$row = mysqli_fetch_assoc ($result);
-		$sReturn = $row['customurl_url'];
-	} else {
-		$sReturn = FALSE;
+		$arReturn['url'] = $row['customurl_url'];
 	}
 
-	return ($sReturn);
+	/*** nick_ ***/
+	if ($arReturn['url'] == FALSE)
+	{
+		$query = "SELECT customurl_url FROM `customurl` WHERE" .
+			" (customurl_nick='" . $sNickE . "_');";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if (mysqli_num_rows ($result) > 0)
+		{
+			$row = mysqli_fetch_assoc ($result);
+			$arReturn['url'] = $row['customurl_url'];
+			$arReturn['with'] = '_';
+		}
+	}
+
+	/*** nick- ***/
+	if ($arReturn['url'] == FALSE)
+	{
+		$query = "SELECT customurl_url FROM `customurl` WHERE" .
+			" (customurl_nick='" . $sNickE . "-');";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if (mysqli_num_rows ($result) > 0)
+		{
+			$row = mysqli_fetch_assoc ($result);
+			$arReturn['url'] = $row['customurl_url'];
+			$arReturn['with'] = '-';
+		}
+	}
+
+	return ($arReturn);
 }
 /***********************************************/
 function PlanAskCustomURL ($sNick)
@@ -1309,8 +1339,17 @@ do {
 										} else {
 											$sTargetUser = FixString ($exsay[1]);
 											if ($sTargetUser == 'me') { $sTargetUser = $sNick; }
-											$sCustomURL = GetCustomURL ($sTargetUser);
-											switch ($sCustomURL)
+											$arCustomURL = GetCustomURL ($sTargetUser);
+
+											/*** Helping the user. ***/
+											if ($arCustomURL['with'] != FALSE)
+											{
+												$sTargetUser = $sTargetUser . $arCustomURL['with'];
+												Say ($sRecipient, 'I have added an "' .
+													$arCustomURL['with'] . '" to your request.');
+											}
+
+											switch ($arCustomURL['url'])
 											{
 												case FALSE:
 													if (($sRecipient[0] == '#') &&
@@ -1343,7 +1382,7 @@ do {
 													break;
 												default:
 													GiveSteamInfoAPI ($sRecipient, $sTargetUser,
-														$sCustomURL);
+														$arCustomURL['url']);
 													break;
 											}
 										}
