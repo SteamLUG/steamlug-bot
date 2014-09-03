@@ -1338,6 +1338,17 @@ do {
 											Say ($sRecipient, $GLOBALS['botsteam']);
 										} else {
 											$sTargetUser = FixString ($exsay[1]);
+
+											/*** Everybody's a comedian. ***/
+											$arComedian = array ('nothing', 'something',
+												'everything', 'anything', 'this', 'that',
+												'you', 'it', 'god', 'jesus');
+											if (in_array (strtolower ($sTargetUser), $arComedian))
+											{
+												Say ($sRecipient, 'No.');
+												break;
+											}
+
 											if ($sTargetUser == 'me') { $sTargetUser = $sNick; }
 											$arCustomURL = GetCustomURL ($sTargetUser);
 
@@ -1362,8 +1373,8 @@ do {
 														switch ($sResult)
 														{
 															case 'insert':
-																Say ($sRecipient, 'When I see ' .
-																	$sTargetUser . ' I will ask about that.');
+																Say ($sRecipient, 'When I see "' .
+																	$sTargetUser . '" I will ask about that.');
 																break;
 															case 'found':
 																Say ($sRecipient, 'I already have plans to' .
