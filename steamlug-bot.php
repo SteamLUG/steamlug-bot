@@ -1394,18 +1394,24 @@ do {
 									if (isset ($exsay[1]))
 									{
 										$sTargetUser = FixString ($exsay[1]);
-										$arLastSeen = LastSeen ($sTargetUser);
-										if ($arLastSeen == FALSE)
+										if (($sTargetUser == $sNick) || ($sTargetUser == 'me'))
 										{
 											Say ($sRecipient, ColorThis ('seen') .
-												' I have never seen (an identified) "' .
-												$sTargetUser . '" talk.');
+												' You\'re here, silly.');
 										} else {
-											Say ($sRecipient, ColorThis ('seen') .
-												' I last saw ' . $sTargetUser . ' talk in ' .
-												$arLastSeen['log_channel'] . ', ' .
-												$arLastSeen['tas'] . ' ("' .
-												$arLastSeen['log_text'] . '").');
+											$arLastSeen = LastSeen ($sTargetUser);
+											if ($arLastSeen == FALSE)
+											{
+												Say ($sRecipient, ColorThis ('seen') .
+													' I have never seen (an identified) "' .
+													$sTargetUser . '" talk.');
+											} else {
+												Say ($sRecipient, ColorThis ('seen') .
+													' I last saw ' . $sTargetUser . ' talk in ' .
+													$arLastSeen['log_channel'] . ', ' .
+													$arLastSeen['tas'] . ' ("' .
+													$arLastSeen['log_text'] . '").');
+											}
 										}
 									} else {
 										Say ($sRecipient, 'Usage: !seen <IRC nick>');
