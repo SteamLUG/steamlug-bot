@@ -878,7 +878,10 @@ function ReturnTime ($sInTime)
 function UpcomingEvents ()
 /***********************************************/
 {
-	$sReturn = '';
+	$iNothing = 1;
+
+	/*** Current time. ***/
+	$sReturn = '(' . date ('H:i', time()) . ' UTC) ';
 
 	/*** Right now. ***/
 	$query = "SELECT DISTINCT event_title, event_link, event_date FROM" .
@@ -889,7 +892,8 @@ function UpcomingEvents ()
 	{
 		$row = mysqli_fetch_assoc ($result);
 		$sTitle = str_replace ('SteamLUG ', '', $row['event_title']);
-		$sReturn .= 'Right now: "' . $sTitle . '".';
+		$sReturn .= 'Right now: "' . $sTitle . '". ';
+		$iNothing = 0;
 	}
 
 	/*** Future. ***/
@@ -899,6 +903,7 @@ function UpcomingEvents ()
 	$iResults = mysqli_num_rows ($result);
 	if ($iResults > 0)
 	{
+		$iNothing = 0;
 		$iEvents = 0;
 		while ($row = mysqli_fetch_assoc ($result))
 		{
@@ -906,16 +911,17 @@ function UpcomingEvents ()
 			$sTitle = str_replace ('SteamLUG ', '', $row['event_title']);
 			$sLink = $row['event_link'];
 			$sDate = $row['event_date'];
-			$sWhen = ltrim (substr ($sDate, 8, 2), '0') . ' ' .
-				date ('M', strtotime ($sDate)) . ' ' .
-				substr ($sDate, 11, -3) . ' UTC';
+			$sDay = ltrim (substr ($sDate, 8, 2), '0') . ' ' .
+				date ('M', strtotime ($sDate));
+			if ($sDay == date ('j M', time()))
+				{ $sDay = ', today'; } else { $sDay = ' on ' . $sDay; }
+			$sWhen = $sDay . ' ' . substr ($sDate, 11, -3) . ' UTC';
 			if ($iEvents == 1)
 			{
-				if ($sReturn != '') { $sReturn .= ' '; }
-				$sReturn .= 'Next up is "' . $sTitle . '" on ' .
+				$sReturn .= 'Next up is "' . $sTitle . '"' .
 					$sWhen . ' (' . $sLink . ').';
 			} else if ($iEvents <= 3) {
-				$sReturn .= ' Then "' . $sTitle . '" on ' . $sWhen . '.';
+				$sReturn .= ' Then "' . $sTitle . '"' . $sWhen . '.';
 			} else {
 				$sReturn .= ' etc.';
 				break;
@@ -924,7 +930,7 @@ function UpcomingEvents ()
 	}
 
 	/*** Nothing? ***/
-	if ($sReturn == '') { $sReturn = 'No upcoming events.'; }
+	if ($iNothing == 1) { $sReturn .= 'No upcoming events.'; }
 
 	return ($sReturn);
 }
