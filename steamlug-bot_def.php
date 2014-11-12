@@ -134,7 +134,7 @@ function GetPage ($sUrl, $iRealAgent)
 	curl_setopt ($ch, CURLOPT_HEADER, FALSE);
 	curl_setopt ($ch, CURLOPT_NOBODY, FALSE);
 	curl_setopt ($ch, CURLOPT_VERBOSE, FALSE);
-	curl_setopt ($ch, CURLOPT_REFERER, '');
+	/*** curl_setopt ($ch, CURLOPT_REFERER, ''); ***/
 	curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, TRUE);
 	curl_setopt ($ch, CURLOPT_MAXREDIRS, 4);
 	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, TRUE);
