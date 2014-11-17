@@ -1415,6 +1415,9 @@ do {
 										{
 											Say ($sRecipient, ColorThis ('seen') .
 												' You\'re here, silly.');
+										} else if ($sTargetUser == $GLOBALS['botname']) {
+											Say ($sRecipient, ColorThis ('seen') .
+												' Reporting for duty.');
 										} else {
 											$arLastSeen = LastSeen ($sTargetUser);
 											if ($arLastSeen == FALSE)

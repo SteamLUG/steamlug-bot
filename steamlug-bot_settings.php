@@ -27,7 +27,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.52';
+	$GLOBALS['botversion'] = '0.53';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['botsteam'] = 'http://steamcommunity.com/groups/steamlug';
 	$GLOBALS['idlesince'] = time();
