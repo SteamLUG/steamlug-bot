@@ -1465,6 +1465,23 @@ do {
 										{ Say ($sRecipient, 'Please use: !steamstatus'); }
 									SteamStat ($sRecipient);
 									break;
+								case '!id':
+									$sCustomName = 'CustomName';
+									$sHighlight = '';
+									if (isset ($exsay[1]))
+									{
+										$sCustomName = FixString ($exsay[1]);
+										if (($sRecipient[0] == '#') &&
+											(UserInChannel ($sRecipient, $sCustomName)))
+										{ $sHighlight = $sCustomName . ': '; }
+									}
+									Say ($sRecipient, ColorThis ('id') .
+										' ' . $sHighlight . 'To get your own custom Steam URL (' .
+										' steamcommunity.com/id/' . $sCustomName . ' ), do the' .
+										' following: visit your Steam profile, click the "Edit' .
+										' Profile" button, and then enter "' . $sCustomName .
+										'" on the "Custom URL:" line.');
+									break;
 							}
 						}
 						break;
