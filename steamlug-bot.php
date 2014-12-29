@@ -1078,6 +1078,36 @@ function SteamStat ($sRecipient)
 	}
 }
 /***********************************************/
+function PCGWGameName ($sSearch)
+/***********************************************/
+{
+	$sURL = 'http://pcgamingwiki.com/w/api.php?action=query' .
+		'&list=search&srsearch="' . rawurlencode ($sSearch) .
+		'"&srlimit=1&format=json';
+	$jsn = GetPage ($sURL, 0);
+	$arResult = json_decode ($jsn, TRUE);
+	if (isset ($arResult['query']['search'][0]['title']))
+	{
+		$sGameName = $arResult['query']['search'][0]['title'];
+		return ($sGameName);
+	} else {
+		return (FALSE);
+	}
+}
+/***********************************************/
+function PCGWUrl ($sSearch)
+/***********************************************/
+{
+	$sGameName = PCGWGameName ($sSearch);
+	if ($sGameName != FALSE)
+	{
+		return ('http://pcgamingwiki.com/wiki/' .
+			rawurlencode (str_replace (' ', '_', $sGameName)));
+	} else {
+		return ('Not found.');
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1481,6 +1511,26 @@ do {
 										' following: visit your Steam profile, click the "Edit' .
 										' Profile" button, and then enter "' . $sCustomName .
 										'" on the "Custom URL:" line.');
+									break;
+								case '!pcgw':
+									if ($sSaid != '!pcgw')
+									{
+										$sSearch = substr ($sSaid, 6);
+										$sPCGWUrl = PCGWUrl ($sSearch);
+										$sGameName = PCGWGameName ($sSearch);
+										if ($sSearch != $sGameName)
+										{
+											if ($sGameName == FALSE) { $sGameName = '?'; }
+											$sSearched = $sSearch . ' -> ' . $sGameName;
+										} else {
+											$sSearched = $sSearch;
+										}
+										Say ($sRecipient, ColorThis ('pcgw') . ' (' . $sSearched .
+											') ' . $sPCGWUrl);
+									} else {
+										Say ($sRecipient, 'http://pcgamingwiki.com/ | Usage:' .
+											' !pcgw [game name]');
+									}
 									break;
 							}
 						}

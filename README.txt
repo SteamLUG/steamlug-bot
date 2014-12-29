@@ -32,6 +32,7 @@ Replies to:
 - !t <Twitter name> [1-3] | !t <Tweet id>
 - !w <Wikipedia search>
 - !id [IRC nick|name]
+- !pcgw [game name]
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
 
