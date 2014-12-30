@@ -1108,6 +1108,171 @@ function PCGWUrl ($sSearch)
 	}
 }
 /***********************************************/
+function PCGWInfo ($sSearch)
+/***********************************************/
+{
+	$sGameName = PCGWGameName ($sSearch);
+	$arReturn = array();
+	if ($sGameName != FALSE)
+	{
+		$sURL = 'http://pcgamingwiki.com/w/api.php?action=askargs&conditions=' .
+			rawurlencode ($sGameName) . '&printouts=' .
+			rawurlencode ('Steam AppID') . '|' .
+			rawurlencode ('GOG.com page') . '|' .
+			rawurlencode ('Wikipedia') . '|' .
+			rawurlencode ('Available on') . '|' .
+			rawurlencode ('Release date') . '|' .
+			rawurlencode ('Release date Linux') . '|' .
+			rawurlencode ('Developed by') . '|' .
+			rawurlencode ('Ported to Linux by') . '|' .
+			rawurlencode ('Ported to OS X by') . '|' .
+			rawurlencode ('Linux XDG support') .
+			'&format=json';
+		$jsn = GetPage ($sURL, 0);
+		$arResult = json_decode ($jsn, TRUE);
+		if (isset ($arResult['error']['info']))
+		{
+			$arReturn[0] = -2;
+			$arReturn[1] = $arResult['error']['info'];
+		}
+		$sArrayName = current (array_keys ($arResult['query']['results']));
+
+		$arReturn[0] = '';
+		$arReturn[1] = '';
+
+		/*** Steam ***/
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Steam AppID'][0]))
+		{
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['Steam AppID'][0];
+			$arReturn[0] .= 'http://store.steampowered.com/app/' . $sAdd . '/';
+		} else { $arReturn[0] .= '(no Steam)'; }
+
+		/*** PCGW ***/
+		$arReturn[0] .= ' | ';
+		if (isset ($arResult['query']['results'][$sArrayName]['fullurl']))
+		{
+			$sAdd = $arResult['query']['results'][$sArrayName]['fullurl'];
+			$arReturn[0] .= $sAdd;
+		} else { $arReturn[0] .= '(no PCGW)'; }
+
+		/*** GOG ***/
+		$arReturn[0] .= ' | ';
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['GOG.com page'][0]))
+		{
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['GOG.com page'][0];
+			$arReturn[0] .= 'http://www.gog.com/game/' . $sAdd;
+		} else { $arReturn[0] .= '(no GOG)'; }
+
+		/*** Wikipedia ***/
+		$arReturn[0] .= ' | ';
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Wikipedia'][0]))
+		{
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['Wikipedia'][0];
+			/*** Only here: ***/
+			$sAdd = rawurlencode (str_replace (' ', '_', $sAdd));
+			$arReturn[0] .= 'http://en.wikipedia.org/wiki/' . $sAdd;
+		} else { $arReturn[0] .= '(no Wiki)'; }
+
+		$arReturn[0] .= ' (source: PCGW)';
+
+		/*** platforms ***/
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Available on'][0]))
+		{
+			$sPlatforms = '';
+			foreach ($arResult['query']['results'][$sArrayName]['printouts']
+				['Available on'] as $key=>$value)
+			{
+				if ($sPlatforms != '') { $sPlatforms .= ', '; }
+				$sPlatforms .= $value;
+			}
+			$arReturn[1] .= 'Platforms: ' . $sPlatforms;
+		} else { $arReturn[1] .= '(no platforms)'; }
+
+		/*** release date (general) ***/
+		$arReturn[1] .= ' | ';
+		$iGDate = FALSE;
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Release date'][0]))
+		{
+			$iGDate = $arResult['query']['results'][$sArrayName]['printouts']
+				['Release date'][0];
+			$sGDate = date ('F j, Y', $iGDate);
+			$arReturn[1] .= 'Release date: ' . $sGDate;
+		} else { $arReturn[1] .= '(unknown release date)'; }
+
+		/*** release date (Linux) ***/
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Release date Linux'][0]))
+		{
+			$arReturn[1] .= ' | '; /*** Correct here. ***/
+			$iLDate = $arResult['query']['results'][$sArrayName]['printouts']
+				['Release date Linux'][0];
+			if ($iGDate != $iLDate)
+			{
+				$sLDate = date ('F j, Y', $iLDate);
+				$arReturn[1] .= 'Linux release date: ' . $sLDate;
+			} else { $arReturn[1] .= '(day one Linux release)'; }
+		} /*** No else. ***/
+
+		/*** developer ***/
+		$arReturn[1] .= ' | ';
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Developed by'][0]['fulltext']))
+		{
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['Developed by'][0]['fulltext'];
+			$sAdd = str_replace ('Developer:', '', $sAdd);
+			$arReturn[1] .= 'Developer: ' . $sAdd;
+		} else { $arReturn[1] .= '(unknown developer)'; }
+
+		/*** Linux porter ***/
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Ported to Linux by'][0]['fulltext']))
+		{
+			$arReturn[1] .= ' | '; /*** Correct here. ***/
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['Ported to Linux by'][0]['fulltext'];
+			$sAdd = str_replace ('Developer:', '', $sAdd);
+			$arReturn[1] .= 'Linux porter: ' . $sAdd;
+		} /*** No else. ***/
+
+		/*** OS X porter ***/
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Ported to OS X by'][0]['fulltext']))
+		{
+			$arReturn[1] .= ' | '; /*** Correct here. ***/
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['Ported to OS X by'][0]['fulltext'];
+			$sAdd = str_replace ('Developer:', '', $sAdd);
+			$arReturn[1] .= 'OS X porter: ' . $sAdd;
+		} /*** No else. ***/
+
+		/*** XDG ***/
+		if (isset ($arResult['query']['results'][$sArrayName]['printouts']
+			['Linux XDG support'][0]))
+		{
+			$arReturn[1] .= ' | '; /*** Correct here. ***/
+			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
+				['Linux XDG support'][0];
+			$arReturn[1] .= 'XDG: ' . $sAdd;
+		} /*** No else. ***/
+
+		$arReturn[1] .= ' (source: PCGW)';
+
+		return ($arReturn);
+	} else {
+		$arReturn[0] = -1;
+		return ($arReturn);
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1530,6 +1695,36 @@ do {
 									} else {
 										Say ($sRecipient, 'http://pcgamingwiki.com/ | Usage:' .
 											' !pcgw [game name]');
+									}
+									break;
+								case '!game':
+									if ($sSaid != '!game')
+									{
+										$sSearch = substr ($sSaid, 6);
+										$arPCGWInfo = PCGWInfo ($sSearch);
+										$sGameName = PCGWGameName ($sSearch);
+										if ($sSearch != $sGameName)
+										{
+											if ($sGameName == FALSE) { $sGameName = '?'; }
+											$sSearched = $sSearch . ' -> ' . $sGameName;
+										} else {
+											$sSearched = $sSearch;
+										}
+										if ($arPCGWInfo[0] == -1)
+										{
+											Say ($sRecipient, ColorThis ('game') . ' (' .
+												$sSearched . ') Not found.');
+										} else if ($arPCGWInfo[0] == -2) {
+											Say ($sRecipient, ColorThis ('game') . ' (' .
+												$sSearched . ') ' . $arPCGWInfo[1]);
+										} else {
+											Say ($sRecipient, ColorThis ('game') . ' (' .
+												$sSearched . ') ' . $arPCGWInfo[0]);
+											Say ($sRecipient, ColorThis ('game') . ' ' .
+												$arPCGWInfo[1]);
+										}
+									} else {
+										Say ($sRecipient, 'Usage: !game <game name>');
 									}
 									break;
 							}

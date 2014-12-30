@@ -33,6 +33,7 @@ Replies to:
 - !w <Wikipedia search>
 - !id [IRC nick|name]
 - !pcgw [game name]
+- !game <game name>
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
 
