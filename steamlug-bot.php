@@ -1727,6 +1727,10 @@ do {
 										Say ($sRecipient, 'Usage: !game <game name>');
 									}
 									break;
+								case '!mumble':
+									Say ($sRecipient, ColorThis ('mumble') . ' ' .
+										$GLOBALS['mumble-page']);
+									break;
 							}
 						}
 						break;

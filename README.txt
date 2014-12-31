@@ -34,6 +34,7 @@ Replies to:
 - !id [IRC nick|name]
 - !pcgw [game name]
 - !game <game name>
+- !mumble
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
 
