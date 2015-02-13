@@ -1273,6 +1273,91 @@ function PCGWInfo ($sSearch)
 	}
 }
 /***********************************************/
+function SimilarNick ($sTargetUser)
+/***********************************************/
+{
+	/*** Store all nicks. ***/
+	$arNicks = array();
+	$arNicksUpper = array();
+	$query = "SELECT DISTINCT(log_nick) FROM `log` WHERE (log_identified='1')" .
+		" AND (log_channel LIKE '#%') AND (log_channel NOT LIKE '#botwar%')" .
+		" ORDER BY log_nick;";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iNicks = mysqli_num_rows ($result);
+	while ($row = mysqli_fetch_assoc ($result))
+	{
+		$log_nick = $row['log_nick'];
+		array_push ($arNicks, $log_nick);
+		array_push ($arNicksUpper, strtoupper ($log_nick));
+	}
+
+	/*** Store all scores. ***/
+	$arSimilar = array();
+	$arLevenshtein = array();
+	foreach ($arNicks as $key=>$value)
+	{
+		$iSimilar = similar_text ($sTargetUser, $value, $percent);
+		array_push ($arSimilar, $percent); /*** more is better ***/
+		$iLevenshtein = levenshtein ($sTargetUser, $value);
+		array_push ($arLevenshtein, $iLevenshtein); /*** less is better ***/
+	}
+	$arSimilarUpper = array();
+	$arLevenshteinUpper = array();
+	foreach ($arNicksUpper as $key=>$value)
+	{
+		$iSimilarUpper = similar_text (strtoupper ($sTargetUser),
+			$value, $percent);
+		array_push ($arSimilarUpper, $percent); /*** more is better ***/
+		$iLevenshteinUpper = levenshtein (strtoupper ($sTargetUser), $value);
+		array_push ($arLevenshteinUpper,
+			$iLevenshteinUpper); /*** less is better ***/
+	}
+
+	/*** Four best scores. ***/
+	$iBestSimilar = 0; $sBestSimilar = '';
+	$iBestSimilarUpper = 0; $sBestSimilarUpper = '';
+	$iBestLevenshtein = 100; $sBestLevenshtein = '';
+	$iBestLevenshteinUpper = 100; $sBestLevenshteinUpper = '';
+	for ($iTemp = 0; $iTemp < $iNicks; $iTemp++)
+	{
+		if ($arSimilar[$iTemp] > $iBestSimilar)
+		{
+			$iBestSimilar = $arSimilar[$iTemp];
+			$sBestSimilar = $arNicks[$iTemp];
+		}
+		if ($arSimilarUpper[$iTemp] > $iBestSimilarUpper)
+		{
+			$iBestSimilarUpper = $arSimilarUpper[$iTemp];
+			/*** No Upper for $arNicks! ***/
+			$sBestSimilarUpper = $arNicks[$iTemp];
+		}
+		if ($arLevenshtein[$iTemp] < $iBestLevenshtein)
+		{
+			$iBestLevenshtein = $arLevenshtein[$iTemp];
+			$sBestLevenshtein = $arNicks[$iTemp];
+		}
+		if ($arLevenshteinUpper[$iTemp] < $iBestLevenshteinUpper)
+		{
+			$iBestLevenshteinUpper = $arLevenshteinUpper[$iTemp];
+			/*** No Upper for $arNicks! ***/
+			$sBestLevenshteinUpper = $arNicks[$iTemp];
+		}
+	}
+
+	/*** Return. ***/
+	if (($sBestSimilarUpper == '') && ($sBestLevenshteinUpper == '') &&
+		($sBestSimilar == '') && ($sBestLevenshtein == ''))
+	{
+		return (FALSE);
+	} else {
+		$arReturn['1'] = $sBestSimilarUpper;
+		$arReturn['2'] = $sBestLevenshteinUpper;
+		$arReturn['3'] = $sBestSimilar;
+		$arReturn['4'] = $sBestLevenshtein;
+		return ($arReturn);
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1617,9 +1702,45 @@ do {
 											$arLastSeen = LastSeen ($sTargetUser);
 											if ($arLastSeen == FALSE)
 											{
+												$arSimilar = SimilarNick ($sTargetUser);
+												if ($arSimilar == FALSE)
+												{
+													$sSuggestions = '';
+												} else {
+													$sSuggestions = ' (Did you mean ';
+													$iHaveSug = 0;
+													if ($arSimilar[1] != '')
+													{
+														$iHaveSug = 1;
+														$sSuggestions .= '"' . $arSimilar[1] . '"';
+													}
+													if (($arSimilar[2] != '') && ($arSimilar[2] !=
+														$arSimilar[1]))
+													{
+														if ($iHaveSug == 1) { $sSuggestions .= ' or '; }
+														$iHaveSug = 1;
+														$sSuggestions .= '"' . $arSimilar[2] . '"';
+													}
+													if (($arSimilar[3] != '') && ($arSimilar[3] !=
+														$arSimilar[1]) && ($arSimilar[3] != $arSimilar[2]))
+													{
+														if ($iHaveSug == 1) { $sSuggestions .= ' or '; }
+														$iHaveSug = 1;
+														$sSuggestions .= '"' . $arSimilar[3] . '"';
+													}
+													if (($arSimilar[4] != '') && ($arSimilar[4] !=
+														$arSimilar[1]) && ($arSimilar[4] != $arSimilar[2])
+														&& ($arSimilar[4] != $arSimilar[3]))
+													{
+														if ($iHaveSug == 1) { $sSuggestions .= ' or '; }
+														$iHaveSug = 1;
+														$sSuggestions .= '"' . $arSimilar[4] . '"';
+													}
+													$sSuggestions .= '?)';
+												}
 												Say ($sRecipient, ColorThis ('seen') .
 													' I have never seen (an identified) "' .
-													$sTargetUser . '" talk.');
+													$sTargetUser . '" talk.' . $sSuggestions);
 											} else {
 												Say ($sRecipient, ColorThis ('seen') .
 													' I last saw ' . $sTargetUser . ' talk in ' .
