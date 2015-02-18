@@ -182,7 +182,8 @@ function Imgur ($sRecipient, $sMatch)
 	}
 	$sCode = substr ($sMatch, 0, strpos ($sMatch, '.'));
 	$sTitle = GetTitle ('http://imgur.com/' . $sCode);
-	if (($sTitle != FALSE) && ($sTitle != 'imgur: the simple image sharer'))
+	if (($sTitle != FALSE) && ($sTitle != 'imgur: the simple image sharer') &&
+		($sTitle != 'Imgur'))
 	{
 		$sTitle = str_replace (' - Imgur', '', $sTitle);
 		Say ($sRecipient, ColorThis ('imgur') . ' ' . $sTitle);
