@@ -15,3 +15,4 @@ CREATE TABLE `newreleases` (newrelease_id VARCHAR(10) UNIQUE NOT NULL, newreleas
 CREATE TABLE `newreleases_temp` (newrelease_id VARCHAR(10) UNIQUE NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE `getlog` (getlog_id BIGINT UNSIGNED UNIQUE NOT NULL AUTO_INCREMENT, getlog_text VARCHAR(500) NOT NULL, getlog_datetime DATETIME NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE `humbletitles` (humbletitles_id BIGINT UNSIGNED UNIQUE NOT NULL AUTO_INCREMENT, humbletitles_weekly INT(1) NOT NULL, humbletitles_title VARCHAR(500) NOT NULL, humbletitles_date DATETIME NOT NULL, humbletitles_said INT(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `messages` (message_id BIGINT UNSIGNED UNIQUE NOT NULL AUTO_INCREMENT, message_nickfrom VARCHAR(500) NOT NULL, message_nickto VARCHAR(500) NOT NULL, message_text VARCHAR(500) NOT NULL, message_date DATETIME NOT NULL, message_delivered INT(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;

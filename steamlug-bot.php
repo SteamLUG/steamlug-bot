@@ -1359,6 +1359,142 @@ function SimilarNick ($sTargetUser)
 	}
 }
 /***********************************************/
+function MsgSave ($sNickFrom, $sNickTo, $sMsgText)
+/***********************************************/
+{
+	$sMsgText = mysqli_real_escape_string ($GLOBALS['link'], $sMsgText);
+	$sDateTime = DateTime();
+	$query = "INSERT INTO `messages` VALUES (NULL, '" .
+		$sNickFrom . "', '" .
+		$sNickTo . "', '" .
+		$sMsgText . "', '" .
+		$sDateTime . "', '" .
+		'0' . "');";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	if ($result == FALSE)
+	{
+		print ('[ WARN ] This query failed: ' . $query . "\n");
+		return (0);
+	} else {
+		$iLastMsg = MaxId ('message_id', 'messages');
+		return ($iLastMsg);
+	}
+}
+/***********************************************/
+function MsgList ($sNick)
+/***********************************************/
+{
+	$query = "SELECT message_id, message_nickto, message_date FROM `messages`" .
+		" WHERE (message_nickfrom='" . $sNick . "') AND (message_delivered=0);";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iMsgs = mysqli_num_rows ($result);
+	if ($iMsgs == 0)
+	{
+		$sReturn = 'All your messages have been delivered.';
+	} else {
+		if ($iMsgs == 1)
+		{
+			$sReturn = 'One undelivered message:';
+		} else {
+			$sReturn = 'Undelivered messages:';
+		}
+		while ($row = mysqli_fetch_assoc ($result))
+		{
+			$message_id = $row['message_id'];
+			$message_nickto = $row['message_nickto'];
+			$message_date = $row['message_date'];
+			$sReturn .= ' ' . $message_id . ' (to "' . $message_nickto .
+				'" on ' . $message_date . ')';
+		}
+	}
+	return ($sReturn);
+}
+/***********************************************/
+function MsgDel ($iMsgNr, $sNick)
+/***********************************************/
+{
+	$query = "SELECT message_nickfrom FROM `messages` WHERE (message_id='" .
+		$iMsgNr . "') AND (message_delivered=0);";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iMsgs = mysqli_num_rows ($result);
+	if ($iMsgs == 0)
+	{
+		return (-1); /*** Message not found (or already delivered). ***/
+	} else {
+		$row = mysqli_fetch_assoc ($result);
+		$message_nickfrom = $row['message_nickfrom'];
+		if ($message_nickfrom != $sNick)
+		{
+			return (-2); /*** No permission. ***/
+		} else {
+			$query = "DELETE FROM `messages` WHERE (message_id='" . $iMsgNr . "');";
+			$result = mysqli_query ($GLOBALS['link'], $query);
+			if (mysqli_affected_rows ($GLOBALS['link']) == 1)
+			{
+				return (0); /*** Deleted. ***/
+			} else {
+				return (-3); /*** Failed. ***/
+			}
+		}
+	}
+}
+/***********************************************/
+function MsgShow ($iMsgNr)
+/***********************************************/
+{
+	$query = "SELECT message_nickfrom, message_nickto, message_text," .
+		" message_date FROM `messages` WHERE (message_id='" . $iMsgNr .
+		"') AND (message_delivered=0);";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iMsgs = mysqli_num_rows ($result);
+	if ($iMsgs == 0)
+	{
+		return (FALSE);
+	} else {
+		$row = mysqli_fetch_assoc ($result);
+		$message_nickfrom = $row['message_nickfrom'];
+		$message_nickto = $row['message_nickto'];
+		$message_text = $row['message_text'];
+		$message_date = $row['message_date'];
+		$sReturn = 'From "' . $message_nickfrom . '" to "' . $message_nickto .
+			'": ' . $message_text . ' (' . $message_date . ')';
+		return ($sReturn);
+	}
+}
+/***********************************************/
+function MsgRelay ($sChannel, $sNick)
+/***********************************************/
+{
+	$sNickE = mysqli_real_escape_string ($GLOBALS['link'], $sNick);
+
+	$query = "SELECT message_nickfrom, message_text, message_date FROM" .
+		" messages WHERE (message_nickto='" . $sNick . "') AND" .
+		" (message_delivered=0);";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$iMsgs = mysqli_num_rows ($result);
+	if ($iMsgs != 0)
+	{
+		$iRowCount = 0;
+		while ($row = mysqli_fetch_assoc ($result))
+		{
+			$iRowCount++;
+
+			$message_nickfrom = $row['message_nickfrom'];
+			$message_text = $row['message_text'];
+			$message_date = $row['message_date'];
+			Say ($sChannel, ColorThis ('msg') . ' ' . $sNick . ': <' .
+				$message_nickfrom . '> ' . $message_text .
+				' (' . $message_date . ')');
+			$query_update = "UPDATE `messages` SET message_delivered=1 WHERE" .
+				" (message_nickto='" . $sNick . "');";
+			$result_update = mysqli_query ($GLOBALS['link'], $query_update);
+
+			/*** Prevent the bot from flooding; wait 1 second. ***/
+			if ($iRowCount < $iMsgs) { sleep (1); }
+		}
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1853,6 +1989,103 @@ do {
 									Say ($sRecipient, ColorThis ('mumble') . ' ' .
 										$GLOBALS['mumble-page']);
 									break;
+								case '!msg':
+									if ($iIdentified == 1)
+									{
+										if (isset ($exsay[1]))
+										{
+											if ($exsay[1] == 'tell')
+											{
+												if ((isset ($exsay[2])) && (isset ($exsay[3])))
+												{
+													$sNickFrom = $sNick;
+													$sNickTo = FixString ($exsay[2]);
+													$sMsgText = GetPart ($sSaid, 4);
+													if (($sRecipient[0] == '#') &&
+														(UserInChannel ($sRecipient, $sNickTo)))
+													{
+														Say ($sRecipient, 'User "' . $sNickTo .
+															'" is in this IRC channel.');
+													} else {
+														$iMsg = MsgSave ($sNickFrom, $sNickTo, $sMsgText);
+														switch ($iMsg)
+														{
+															case 0:
+																Say ($sRecipient, ColorThis ('msg') . ' ' .
+																	'Sorry, something failed.');
+																break;
+															default:
+																Say ($sRecipient, ColorThis ('msg') . ' ' .
+																	'I will relay your message (' . $iMsg .
+																	') when I see "' . $sNickTo . '".');
+																break;
+														}
+													}
+												} else {
+													Say ($sRecipient, $GLOBALS['msgusage']);
+												}
+											} else if ($exsay[1] == 'list') {
+												$sMsgList = MsgList ($sNick);
+												Say ($sRecipient, ColorThis ('msg') . ' ' .
+													$sMsgList);
+											} else if ($exsay[1] == 'show') {
+												if (isset ($exsay[2]))
+												{
+													$iMsgNr = intval ($exsay[2]);
+													$sMsgShow = MsgShow ($iMsgNr);
+													if ($sMsgShow == FALSE)
+													{
+														Say ($sRecipient, ColorThis ('msg') . ' ' .
+															'There is no message ' . $iMsgNr . '.');
+													} else {
+														Say ($sRecipient, ColorThis ('msg') . ' ' .
+															$sMsgShow);
+													}
+												} else {
+													Say ($sRecipient, $GLOBALS['msgusage']);
+												}
+											} else if ($exsay[1] == 'delete') {
+												if (isset ($exsay[2]))
+												{
+													$iMsgNr = intval ($exsay[2]);
+													$iMsgDel = MsgDel ($iMsgNr, $sNick);
+													switch ($iMsgDel)
+													{
+														case 0:
+															Say ($sRecipient, ColorThis ('msg') . ' ' .
+																'Deleted message ' . $iMsgNr . '.');
+															break;
+														case -1:
+															Say ($sRecipient, ColorThis ('msg') . ' ' .
+																'There is no message ' . $iMsgNr . '.');
+															break;
+														case -2:
+															Say ($sRecipient, ColorThis ('msg') . ' ' .
+																'Message ' . $iMsgNr . ' was not created' .
+																' by you.');
+															break;
+														case -3:
+															Say ($sRecipient, ColorThis ('msg') . ' ' .
+																'Sorry, something failed.');
+															break;
+													}
+												} else {
+													Say ($sRecipient, $GLOBALS['msgusage']);
+												}
+											} else {
+												Say ($sRecipient, $GLOBALS['msgusage']);
+											}
+										} else {
+											Say ($sRecipient, $GLOBALS['msgusage']);
+										}
+									} else {
+										Say ($sRecipient, $sNick . ': you are not' .
+											' identified to NickServ. Use "/msg NickServ' .
+											' IDENTIFY [' . $sNick . '] <password>". |' .
+											' Register your nickname with "/msg NickServ' .
+											' REGISTER <password> <email>".');
+									}
+									break;
 							}
 						}
 						break;
@@ -1867,6 +2100,7 @@ do {
 							$sChannel = $ex[2];
 							AddUser ($sChannel, $sNick);
 							AskCustomURL ($sNick);
+							MsgRelay ($sChannel, $sNick);
 							LogLine ($sNick, $sIdent, $sHost, 'JOIN', $sChannel, '', 0, '');
 						}
 						break;

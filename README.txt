@@ -35,6 +35,7 @@ Replies to:
 - !pcgw [game name]
 - !game <game name>
 - !mumble
+- !msg tell <nick> <text> | !msg list | !msg show <number> | !msg delete <number>
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
 

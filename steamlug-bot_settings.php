@@ -27,7 +27,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.59';
+	$GLOBALS['botversion'] = '0.60';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['botsteam'] = 'http://steamcommunity.com/groups/steamlug';
 	$GLOBALS['idlesince'] = time();
@@ -48,6 +48,7 @@
 	$GLOBALS['folks'] = array();
 	$GLOBALS['sidrequest'] = 'Please set your Steam customURL /id/: !s set <Steam customURL /id/> | If you prefer not to share your Steam information, use: !s set none';
 	$GLOBALS['susage'] = 'To get Steam information: !s <IRC nick> | To set your own Steam customURL /id/: !s set <Steam customURL /id/> | If you prefer not to share your Steam information, use: !s set none';
+	$GLOBALS['msgusage'] = 'Usage: !msg tell <nick> <text> | !msg list | !msg show <number> | !msg delete <number>';
 	$GLOBALS['needurlinfo'] = array ('http://store.steampowered.com/', 'https://store.steampowered.com/', 'http://youtube.com/', 'https://youtube.com/', 'http://www.youtube.com/', 'https://www.youtube.com/');
 	$GLOBALS['getlog_done'] = 'Done.';
 	$GLOBALS['unknown_datetime'] = '1000-01-01 00:00:00';
