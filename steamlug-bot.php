@@ -1485,13 +1485,13 @@ function MsgRelay ($sChannel, $sNick)
 			Say ($sChannel, ColorThis ('msg') . ' ' . $sNick . ': <' .
 				$message_nickfrom . '> ' . $message_text .
 				' (' . $message_date . ')');
-			$query_update = "UPDATE `messages` SET message_delivered=1 WHERE" .
-				" (message_nickto='" . $sNick . "');";
-			$result_update = mysqli_query ($GLOBALS['link'], $query_update);
 
 			/*** Prevent the bot from flooding; wait 1 second. ***/
 			if ($iRowCount < $iMsgs) { sleep (1); }
 		}
+		$query_update = "UPDATE `messages` SET message_delivered=1 WHERE" .
+			" (message_nickto='" . $sNick . "');";
+		$result_update = mysqli_query ($GLOBALS['link'], $query_update);
 	}
 }
 /***********************************************/
