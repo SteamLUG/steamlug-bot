@@ -1056,6 +1056,7 @@ function SteamStat ($sRecipient)
 			$arStat['services']['steam']['status'];
 		Say ($sRecipient, ColorThis ('steamstatus') .
 			' (' . $sStatTime . ') ' . $sInfo . ' (source: steamstat.us)');
+/***
 		$sInfo = 'Australia: ' .
 			$arStat['services']['cm-AU']['status'] . ' (' .
 			$arStat['services']['cm-AU']['title'] . ') | ' .
@@ -1074,6 +1075,18 @@ function SteamStat ($sRecipient)
 			'Netherlands: ' .
 			$arStat['services']['cm-NL']['status'] . ' (' .
 			$arStat['services']['cm-NL']['title'] . ')';
+***/
+		$sInfo = 'CONNECTION MANAGER: ' .
+			strtoupper ($arStat['services']['cms']['status']) . ' (' .
+			strtoupper ($arStat['services']['cms']['title']) . ') | ' .
+			'CS:GO: ' .
+			$arStat['services']['csgo']['status'] . ' | ' .
+			'Dota 2: ' .
+			$arStat['services']['dota2']['status'] . ' | ' .
+			'TF2: ' .
+			$arStat['services']['tf2']['status'] . ' | ' .
+			'Web API: ' .
+			$arStat['services']['webapi']['status'];
 		Say ($sRecipient, ColorThis ('steamstatus') .
 			' (' . $sStatTime . ') ' . $sInfo . ' (source: steamstat.us)');
 	}
