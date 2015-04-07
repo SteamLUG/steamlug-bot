@@ -811,7 +811,16 @@ function CheckNewReleases ()
 		{
 			$sType .= ' of ' . $row['newrelease_fullgame'];
 		}
-		Say ($GLOBALS['channel'], ColorThis ('new') . ' (' . $sType . ') ' .
+
+		/* Unfortunately, Steam also uses type:game for movies, and we
+		 * do not want to mislead people. If Valve ever fixes it, the
+		 * following code can be removed.
+		 */
+		if ($sType == 'game')
+			{ $sType = ' '; }
+				else { $sType = ' (' . $sType . ') '; }
+
+		Say ($GLOBALS['channel'], ColorThis ('new') . $sType .
 			$sName . ' http://store.steampowered.com/app/' . $sId . '/');
 
 		/*** Said. ***/
