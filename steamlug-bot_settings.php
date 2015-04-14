@@ -27,7 +27,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.64';
+	$GLOBALS['botversion'] = '0.65';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['botsteam'] = 'http://steamcommunity.com/groups/steamlug';
 	$GLOBALS['idlesince'] = time();
@@ -53,7 +53,7 @@
 	$GLOBALS['getlog_done'] = 'Done.';
 	$GLOBALS['unknown_datetime'] = '1000-01-01 00:00:00';
 	$GLOBALS['mumble-page'] = 'https://steamlug.org/mumble';
-
+	$GLOBALS['qa_file'] = 'qa.txt';
 	$GLOBALS['imgur'] = array ('http://i.imgur.com/', 'https://i.imgur.com/');
 
 	$GLOBALS['debug'] = 0; /*** Set to 1 when debugging; #botwar. ***/

@@ -247,6 +247,15 @@ function ExtractThanks ($sRecipient, $sNick, $sSaid)
 	}
 }
 /***********************************************/
+function ExtractAnswers ($sNick, $sSaid)
+/***********************************************/
+{
+	if (strtolower ($GLOBALS['qa_answer']) == strtolower ($sSaid))
+	{
+		if ($GLOBALS['qa_winnick'] == '') { $GLOBALS['qa_winnick'] = $sNick; }
+	}
+}
+/***********************************************/
 function ShowTweet ($sRecipient, $arTweet)
 /***********************************************/
 {
@@ -398,7 +407,8 @@ function LogLine ($sNick, $sIdent, $sHost, $sCommand,
 	$result = mysqli_query ($GLOBALS['link'], $query);
 	if ($result == FALSE)
 	{
-		print ('[ WARN ] This query failed: ' . $query . "\n");
+		print ('[ WARN ] This query failed (' .
+			mysqli_error ($GLOBALS['link']) . '): ' . $query . "\n");
 	}
 }
 /***********************************************/
@@ -1517,6 +1527,77 @@ function MsgRelay ($sChannel, $sNick)
 	}
 }
 /***********************************************/
+function GetQuestionAnswer ()
+/***********************************************/
+{
+	$GLOBALS['qa_question'] = '-';
+	$GLOBALS['qa_answer'] = '-';
+
+	/*** Obtain the number of lines in the $GLOBALS['qa_file'] file. ***/
+	$iLineCount = 0;
+	$handle = fopen ($GLOBALS['qa_file'], 'r');
+	if ($handle == FALSE)
+	{
+		$GLOBALS['qa_question'] = FALSE;
+		$GLOBALS['qa_answer'] = 'Could not open "' . $GLOBALS['qa_file'] . '"!';
+	} else {
+		while (!feof ($handle))
+		{
+			$sLine = fgets ($handle);
+			$iLineCount++;
+		}
+	}
+	fclose ($handle);
+
+	/*** Retrieve the line. ***/
+	if ($GLOBALS['qa_question'] != FALSE)
+	{
+		$iLineCount--;
+		$iQuestionNr = rand (1, $iLineCount);
+		$iLineCount = 0;
+		$handle = fopen ($GLOBALS['qa_file'], 'r');
+		if ($handle == FALSE)
+		{
+			$GLOBALS['qa_question'] = FALSE;
+			$GLOBALS['qa_answer'] = 'Could not open "' . $GLOBALS['qa_file'] . '"!';
+		} else {
+			while (!feof ($handle))
+			{
+				$sLine = fgets ($handle);
+				$iLineCount++;
+				if ($iLineCount == $iQuestionNr)
+				{
+					$arQA = explode ('|', $sLine);
+					$GLOBALS['qa_question'] = $arQA[0];
+					$sAnswer = $arQA[1];
+					$arSearch = array ('\r', '\n', chr(10), chr(13));
+					$arReplace = array ('', '', '', '');
+					$sAnswer = str_replace ($arSearch, $arReplace, $sAnswer);
+					$GLOBALS['qa_answer'] = $sAnswer;
+				}
+			}
+		}
+		fclose ($handle);
+	}
+
+	/*** Fork to wait 10 seconds. ***/
+	if ($GLOBALS['qa_question'] != FALSE)
+	{
+		$pid = pcntl_fork();
+		if ($pid == -1)
+		{
+			$GLOBALS['qa_question'] = FALSE;
+			$GLOBALS['qa_answer'] = 'Could not fork to wait!';
+		} else if ($pid) { /*** parent ***/
+			$GLOBALS['qa_wait'] = 1;
+			ConnectToMySQL(); /*** When the child exits, it closes the link. ***/
+		} else { /*** child ***/
+			sleep (10);
+			exit (0);
+		}
+	}
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1529,10 +1610,12 @@ pcntl_signal (SIGUSR1, 'ControlC');
 set_time_limit (0); /*** Do not limit the execution time. ***/
 
 $oldtime = time();
+$oldqtime = time();
 
 do {
 	$iJoined = 0;
 	$iNoCloak = 0;
+	$GLOBALS['qa_wait'] = 0;
 	Connect();
 	Nick ($GLOBALS['botname']);
 	User ($GLOBALS['botname']);
@@ -1546,7 +1629,7 @@ do {
 		{
 			$currenttime = time();
 			/*** Every 15 seconds. ***/
-			if($currenttime > $oldtime + 15)
+			if ($currenttime > $oldtime + 15)
 			{
 				$oldtime = $currenttime;
 				if ($iJoined == 2)
@@ -1556,6 +1639,29 @@ do {
 					CheckEvents();
 					CheckNewReleases();
 					CheckNewHumbleTitles();
+				}
+			}
+		}
+
+		if ($GLOBALS['qa_wait'] == 1)
+		{
+			$currenttime = time();
+			/*** Every second. ***/
+			if ($currenttime > $oldqtime + 1)
+			{
+				$oldqtime = $currenttime;
+				$iQAValue = pcntl_waitpid (0, $status, WNOHANG);
+				if (($iQAValue != -1) && ($iQAValue != 0))
+				{
+					$GLOBALS['qa_wait'] = 0;
+					Say ($GLOBALS['channel'], ColorThis ('answer') . ' ' .
+						$GLOBALS['qa_answer']);
+					if ($GLOBALS['qa_winnick'] != '')
+					{
+						Say ($GLOBALS['channel'], ColorThis ('winner') . ' ' .
+							$GLOBALS['qa_winnick']);
+						$GLOBALS['qa_winnick'] = '';
+					}
 				}
 			}
 		}
@@ -1633,6 +1739,10 @@ do {
 						{
 							ExtractURLInfo ($sRecipient, $sSaid);
 							ExtractThanks ($sRecipient, $sNick, $sSaid);
+							if ($GLOBALS['qa_wait'] == 1)
+							{
+								ExtractAnswers ($sNick, $sSaid);
+							}
 							$exsay = explode (' ', $sSaid);
 							switch ($exsay[0])
 							{
@@ -2106,6 +2216,28 @@ do {
 											' IDENTIFY [' . $sNick . '] <password>". |' .
 											' Register your nickname with "/msg NickServ' .
 											' REGISTER <password> <email>".');
+									}
+									break;
+								case '!question':
+									if ($sRecipient[0] != '#')
+									{
+										Say ($sRecipient,
+											'Sorry, !question is for channels only.');
+									} else if ($GLOBALS['qa_wait'] == 1) {
+										Say ($sRecipient, ColorThis ('question') . ' ' .
+											'Please wait for the answer.');
+									} else {
+										GetQuestionAnswer();
+										if ($GLOBALS['qa_question'] == FALSE)
+										{
+											Say ($sRecipient, ColorThis ('question') . ' ' .
+												'Sorry, something went wrong: ' .
+												$GLOBALS['qa_answer']);
+										} else {
+											Say ($sRecipient, ColorThis ('question') . ' ' .
+												$GLOBALS['qa_question']);
+											$GLOBALS['qa_winnick'] = '';
+										}
 									}
 									break;
 							}
