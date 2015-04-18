@@ -1527,13 +1527,16 @@ function MsgRelay ($sChannel, $sNick)
 	}
 }
 /***********************************************/
-function GetQuestionAnswer ()
+function GetQuestionAnswer ($sQAWord)
 /***********************************************/
 {
 	$GLOBALS['qa_question'] = '-';
 	$GLOBALS['qa_answer'] = '-';
 
-	/*** Obtain the number of lines in the $GLOBALS['qa_file'] file. ***/
+	/*
+	 * Obtain the number of (matching) lines
+	 * in the $GLOBALS['qa_file'] file.
+	 */
 	$iLineCount = 0;
 	$handle = fopen ($GLOBALS['qa_file'], 'r');
 	if ($handle == FALSE)
@@ -1544,15 +1547,37 @@ function GetQuestionAnswer ()
 		while (!feof ($handle))
 		{
 			$sLine = fgets ($handle);
-			$iLineCount++;
+			if (!feof ($handle))
+			{
+				$arQA = explode ('|', $sLine);
+				if (($sQAWord == '') || (($sQAWord != '') && (strpos (strtolower
+					($arQA[0]), strtolower ($sQAWord)) !== FALSE)))
+				{
+					$iLineCount++;
+				}
+			}
 		}
 	}
 	fclose ($handle);
 
+	/*** No (matching) line found. ***/
+	if ($GLOBALS['qa_question'] != FALSE)
+	{
+		if ($iLineCount == 0)
+		{
+			$GLOBALS['qa_question'] = FALSE;
+			if ($sQAWord == '')
+			{
+				$GLOBALS['qa_answer'] = 'No questions found!';
+			} else {
+				$GLOBALS['qa_answer'] = 'No question contains that word.';
+			}
+		}
+	}
+
 	/*** Retrieve the line. ***/
 	if ($GLOBALS['qa_question'] != FALSE)
 	{
-		$iLineCount--;
 		$iQuestionNr = rand (1, $iLineCount);
 		$iLineCount = 0;
 		$handle = fopen ($GLOBALS['qa_file'], 'r');
@@ -1564,16 +1589,24 @@ function GetQuestionAnswer ()
 			while (!feof ($handle))
 			{
 				$sLine = fgets ($handle);
-				$iLineCount++;
-				if ($iLineCount == $iQuestionNr)
+				if (!feof ($handle))
 				{
 					$arQA = explode ('|', $sLine);
-					$GLOBALS['qa_question'] = $arQA[0];
-					$sAnswer = $arQA[1];
-					$arSearch = array ('\r', '\n', chr(10), chr(13));
-					$arReplace = array ('', '', '', '');
-					$sAnswer = str_replace ($arSearch, $arReplace, $sAnswer);
-					$GLOBALS['qa_answer'] = $sAnswer;
+					if (($sQAWord == '') || (($sQAWord != '') && (strpos (strtolower
+						($arQA[0]), strtolower ($sQAWord)) !== FALSE)))
+					{
+						$iLineCount++;
+						if ($iLineCount == $iQuestionNr)
+						{
+							$GLOBALS['qa_question'] = $arQA[0];
+							$sAnswer = $arQA[1];
+							$arSearch = array ('\r', '\n', chr(10), chr(13));
+							$arReplace = array ('', '', '', '');
+							$sAnswer = str_replace ($arSearch, $arReplace, $sAnswer);
+							$GLOBALS['qa_answer'] = $sAnswer;
+							break; /*** Because there's no point to continue. ***/
+						}
+					}
 				}
 			}
 		}
@@ -2227,16 +2260,23 @@ do {
 										Say ($sRecipient, ColorThis ('question') . ' ' .
 											'Please wait for the answer.');
 									} else {
-										GetQuestionAnswer();
-										if ($GLOBALS['qa_question'] == FALSE)
+										if (isset ($exsay[2]))
 										{
-											Say ($sRecipient, ColorThis ('question') . ' ' .
-												'Sorry, something went wrong: ' .
-												$GLOBALS['qa_answer']);
+											Say ($sRecipient, 'Usage: !question [word]');
 										} else {
-											Say ($sRecipient, ColorThis ('question') . ' ' .
-												$GLOBALS['qa_question']);
-											$GLOBALS['qa_winnick'] = '';
+											$sQAWord = '';
+											if (isset ($exsay[1]))
+												{ $sQAWord = FixString ($exsay[1]); }
+											GetQuestionAnswer ($sQAWord);
+											if ($GLOBALS['qa_question'] == FALSE)
+											{
+												Say ($sRecipient, ColorThis ('question') . ' ' .
+													$GLOBALS['qa_answer']);
+											} else {
+												Say ($sRecipient, ColorThis ('question') . ' ' .
+													$GLOBALS['qa_question']);
+												$GLOBALS['qa_winnick'] = '';
+											}
 										}
 									}
 									break;

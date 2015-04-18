@@ -36,7 +36,7 @@ Replies to:
 - !game <game name>
 - !mumble
 - !msg tell <nick> <text> | !msg list | !msg show <number> | !msg delete <number>
-- !question
+- !question [word]
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
 
