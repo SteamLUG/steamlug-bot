@@ -27,7 +27,7 @@
 	$GLOBALS['irc_host'] = '130.239.18.172';
 	$GLOBALS['irc_port'] = 6667;
 	$GLOBALS['botdesc'] = 'SteamLUG bot';
-	$GLOBALS['botversion'] = '0.66';
+	$GLOBALS['botversion'] = '0.67';
 	$GLOBALS['botsource'] = 'https://github.com/SteamLUG/steamlug-bot';
 	$GLOBALS['botsteam'] = 'http://steamcommunity.com/groups/steamlug';
 	$GLOBALS['idlesince'] = time();
@@ -41,7 +41,7 @@
 	$GLOBALS['maxtitle'] = 200;
 	$GLOBALS['maxnews'] = 200;
 	$GLOBALS['maxevent'] = 200;
-	$GLOBALS['ignore'] = array ('SteamDB', 'travis-ci', 'gitmek');
+	$GLOBALS['ignore'] = array ('SteamDB', 'travis-ci', 'gitmek', 'Wendy');
 	$GLOBALS['link'] = FALSE;
 	$GLOBALS['socket'] = FALSE;
 	$GLOBALS['botnametemp'] = 't87878787';
