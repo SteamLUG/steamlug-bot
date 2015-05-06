@@ -214,6 +214,24 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 						{ Imgur ($sRecipient, $sMatch); }
 				}
 
+				/*** Tweet information. ***/
+				if (((substr ($sMatch, 0, 24) == 'https://www.twitter.com/') ||
+					(substr ($sMatch, 0, 23) == 'http://www.twitter.com/') ||
+					(substr ($sMatch, 0, 20) == 'https://twitter.com/') ||
+					(substr ($sMatch, 0, 19) == 'http://twitter.com/')) &&
+					(substr ($sMatch, -26, 8) == '/status/'))
+				{
+					$sTweetId = substr ($sMatch, -18, 18);
+					$arTweet = GetTweetsArray ('', 0, $sTweetId);
+					if (isset ($arTweet['errors']))
+					{
+						Say ($sRecipient, '(failed; "' .
+							$arTweet['errors'][0]['message'] . '")');
+					} else {
+						ShowTweet ($sRecipient, $arTweet);
+					}
+				}
+
 				/*** Title information. ***/
 				foreach ($GLOBALS['needurlinfo'] as $key=>$value)
 				{
