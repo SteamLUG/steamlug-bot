@@ -333,13 +333,38 @@ function GetNewReleases ()
 	return (json_decode ($jsn, TRUE));
 }
 /***********************************************/
-function GetAppDetails ($sID)
+function GetAppDetails ($sID, $sCountryCode)
 /***********************************************/
 {
-	$jsn = GetPage ('http://store.steampowered.com/api/appdetails/?appids=' .
-		$sID, 0);
+	$sURL = 'http://store.steampowered.com/api/appdetails/?appids=' . $sID;
+	if ($sCountryCode != '') { $sURL .= '&cc=' . $sCountryCode; }
+	$jsn = GetPage ($sURL, 0);
 
 	return (json_decode ($jsn, TRUE));
+}
+/***********************************************/
+function GetCurrentPrice ($sID, $sCountryCode)
+/***********************************************/
+{
+	switch ($sCountryCode)
+	{
+		case 'de': $cChar = ','; $cSymbol = '€'; break;
+		case 'it': $cChar = ','; $cSymbol = '€'; break;
+		case 'uk': $cChar = '.'; $cSymbol = '£'; break;
+		case 'us': $cChar = '.'; $cSymbol = 'US$'; break;
+	}
+
+	$arResult = GetAppDetails ($sID, $sCountryCode);
+	if (($arResult[$sID]['success'] == 1) &&
+		(isset ($arResult[$sID]['data']['price_overview']))) /*** If not free. ***/
+	{
+		$sCurrentPrice = $arResult[$sID]['data']
+			['price_overview']['final'];
+		$sCurrentPrice = substr_replace ($sCurrentPrice, $cChar, -2, 0);
+		return ($cSymbol . $sCurrentPrice);
+	} else {
+		return (FALSE);
+	}
 }
 /***********************************************/
 function NewReleasesToMySQL ($arNewReleases)
@@ -393,7 +418,7 @@ function NewReleasesToMySQL ($arNewReleases)
 		{
 			$sID = $row['id'];
 
-			$arDetails = GetAppDetails ($sID);
+			$arDetails = GetAppDetails ($sID, '');
 			if (($arDetails[$sID]['success'] == 1) &&
 				(isset ($arDetails[$sID]['data']['type'])) &&
 				(isset ($arDetails[$sID]['data']['name'])) &&

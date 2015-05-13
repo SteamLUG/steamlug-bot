@@ -240,7 +240,54 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 						$sTitle = GetTitle ($sMatch);
 						if ($sTitle != FALSE)
 						{
-							Say ($sRecipient, ColorThis ('url') . ' ' . $sTitle);
+							/*** Get prices. ***/
+							$sPrices = ''; /*** Do not move this down. ***/
+							$sPatternP = "/store.steampowered.com\/app\/([0-9]+)?.*/";
+							$iBingoP = preg_match ($sPatternP, $sMatch, $arMatchP);
+							if ($iBingoP == 1)
+							{
+								$sAppId = $arMatchP[1];
+								$arPrices = array();
+
+								/*** de/it ***/
+								$arPrices['de'] = GetCurrentPrice ($sAppId, 'de');
+								$arPrices['it'] = GetCurrentPrice ($sAppId, 'it');
+								if (($arPrices['de'] != FALSE) && ($arPrices['it'] != FALSE)
+									&& ($arPrices['de'] != $arPrices['it']))
+									{ $iEUDiffer = 1; } else {$iEUDiffer = 0; }
+								if ($arPrices['de'] != FALSE)
+								{
+									$sPrices .= $arPrices['de'];
+									if ($iEUDiffer == 1) { $sPrices .= '(t1)'; }
+								}
+								if (($arPrices['it'] != FALSE) && ($arPrices['de'] !=
+									$arPrices['it']))
+								{
+									if ($sPrices != '') { $sPrices .= '/'; }
+									$sPrices .= $arPrices['it'];
+									if ($iEUDiffer == 1) { $sPrices .= '(t2)'; }
+								}
+
+								/*** uk ***/
+								$arPrices['uk'] = GetCurrentPrice ($sAppId, 'uk');
+								if ($arPrices['uk'] != FALSE)
+								{
+									if ($sPrices != '') { $sPrices .= '/'; }
+									$sPrices .= $arPrices['uk'];
+								}
+
+								/*** us ***/
+								$arPrices['us'] = GetCurrentPrice ($sAppId, 'us');
+								if ($arPrices['us'] != FALSE)
+								{
+									if ($sPrices != '') { $sPrices .= '/'; }
+									$sPrices .= $arPrices['us'];
+								}
+
+								if ($sPrices != '') { $sPrices = ' (' . $sPrices . ')'; }
+							}
+
+							Say ($sRecipient, ColorThis ('url') . ' ' . $sTitle . $sPrices);
 							$iMaxURL++;
 						}
 					}
