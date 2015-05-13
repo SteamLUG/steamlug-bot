@@ -247,44 +247,7 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 							if ($iBingoP == 1)
 							{
 								$sAppId = $arMatchP[1];
-								$arPrices = array();
-
-								/*** de/it ***/
-								$arPrices['de'] = GetCurrentPrice ($sAppId, 'de');
-								$arPrices['it'] = GetCurrentPrice ($sAppId, 'it');
-								if (($arPrices['de'] != FALSE) && ($arPrices['it'] != FALSE)
-									&& ($arPrices['de'] != $arPrices['it']))
-									{ $iEUDiffer = 1; } else {$iEUDiffer = 0; }
-								if ($arPrices['de'] != FALSE)
-								{
-									$sPrices .= $arPrices['de'];
-									if ($iEUDiffer == 1) { $sPrices .= '(t1)'; }
-								}
-								if (($arPrices['it'] != FALSE) && ($arPrices['de'] !=
-									$arPrices['it']))
-								{
-									if ($sPrices != '') { $sPrices .= '/'; }
-									$sPrices .= $arPrices['it'];
-									if ($iEUDiffer == 1) { $sPrices .= '(t2)'; }
-								}
-
-								/*** uk ***/
-								$arPrices['uk'] = GetCurrentPrice ($sAppId, 'uk');
-								if ($arPrices['uk'] != FALSE)
-								{
-									if ($sPrices != '') { $sPrices .= '/'; }
-									$sPrices .= $arPrices['uk'];
-								}
-
-								/*** us ***/
-								$arPrices['us'] = GetCurrentPrice ($sAppId, 'us');
-								if ($arPrices['us'] != FALSE)
-								{
-									if ($sPrices != '') { $sPrices .= '/'; }
-									$sPrices .= $arPrices['us'];
-								}
-
-								if ($sPrices != '') { $sPrices = ' (' . $sPrices . ')'; }
+								$sPrices = CPrices ($sAppId);
 							}
 
 							Say ($sRecipient, ColorThis ('url') . ' ' . $sTitle . $sPrices);
@@ -296,6 +259,52 @@ function ExtractURLInfo ($sRecipient, $sSaid)
 			if ($iMaxURL == 3) { break; }
 		}
 	}
+}
+/***********************************************/
+function CPrices ($sAppId)
+/***********************************************/
+{
+	$sPrices = '';
+	$arPrices = array();
+
+	/*** de/it ***/
+	$arPrices['de'] = GetCurrentPrice ($sAppId, 'de');
+	$arPrices['it'] = GetCurrentPrice ($sAppId, 'it');
+	if (($arPrices['de'] != FALSE) && ($arPrices['it'] != FALSE)
+		&& ($arPrices['de'] != $arPrices['it']))
+		{ $iEUDiffer = 1; } else {$iEUDiffer = 0; }
+	if ($arPrices['de'] != FALSE)
+	{
+		$sPrices .= $arPrices['de'];
+		if ($iEUDiffer == 1) { $sPrices .= '(t1)'; }
+	}
+	if (($arPrices['it'] != FALSE) && ($arPrices['de'] !=
+		$arPrices['it']))
+	{
+		if ($sPrices != '') { $sPrices .= '/'; }
+		$sPrices .= $arPrices['it'];
+		if ($iEUDiffer == 1) { $sPrices .= '(t2)'; }
+	}
+
+	/*** uk ***/
+	$arPrices['uk'] = GetCurrentPrice ($sAppId, 'uk');
+	if ($arPrices['uk'] != FALSE)
+	{
+		if ($sPrices != '') { $sPrices .= '/'; }
+		$sPrices .= $arPrices['uk'];
+	}
+
+	/*** us ***/
+	$arPrices['us'] = GetCurrentPrice ($sAppId, 'us');
+	if ($arPrices['us'] != FALSE)
+	{
+		if ($sPrices != '') { $sPrices .= '/'; }
+		$sPrices .= $arPrices['us'];
+	}
+
+	if ($sPrices != '') { $sPrices = ' (now ' . $sPrices . ')'; }
+
+	return ($sPrices);
 }
 /***********************************************/
 function ExtractThanks ($sRecipient, $sNick, $sSaid)
@@ -896,7 +905,8 @@ function CheckNewReleases ()
 				else { $sType = ' (' . $sType . ') '; }
 
 		Say ($GLOBALS['channel'], ColorThis ('new') . $sType .
-			$sName . ' http://store.steampowered.com/app/' . $sId . '/');
+			$sName . ' http://store.steampowered.com/app/' .
+			$sId . '/' . CPrices ($sId));
 
 		/*** Said. ***/
 		$query_update = "UPDATE `newreleases` SET newrelease_said='1' WHERE" .
@@ -1244,7 +1254,8 @@ function PCGWInfo ($sSearch)
 		{
 			$sAdd = $arResult['query']['results'][$sArrayName]['printouts']
 				['Steam AppID'][0];
-			$arReturn[0] .= 'http://store.steampowered.com/app/' . $sAdd . '/';
+			$arReturn[0] .= 'http://store.steampowered.com/app/' .
+				$sAdd . '/' . CPrices ($sAdd);
 		} else { $arReturn[0] .= '(no Steam)'; }
 
 		/*** PCGW ***/
