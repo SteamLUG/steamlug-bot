@@ -592,14 +592,16 @@ function NewHumbleTitlesToMySQL ()
 				" (humbletitles_weekly='0') ORDER BY humbletitles_date DESC LIMIT 1;";
 			$result = mysqli_query ($GLOBALS['link'], $query);
 			$row = mysqli_fetch_assoc ($result);
-			if ($row['humbletitles_title'] != $sTitleMain) { $iInsertMain = 1; }
+			if (mysqli_real_escape_string ($GLOBALS['link'],
+				$row['humbletitles_title']) != $sTitleMain) { $iInsertMain = 1; }
 
 			/*** weekly ***/
 			$query = "SELECT humbletitles_title FROM `humbletitles` WHERE" .
 				" (humbletitles_weekly='1') ORDER BY humbletitles_date DESC LIMIT 1;";
 			$result = mysqli_query ($GLOBALS['link'], $query);
 			$row = mysqli_fetch_assoc ($result);
-			if ($row['humbletitles_title'] != $sTitleWeekly) { $iInsertWeekly = 1; }
+			if (mysqli_real_escape_string ($GLOBALS['link'],
+				$row['humbletitles_title']) != $sTitleWeekly) { $iInsertWeekly = 1; }
 		}
 		if ($iInsertMain == 1)
 		{
