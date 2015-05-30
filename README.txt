@@ -37,6 +37,7 @@ Replies to:
 - !mumble
 - !msg tell <nick> <text> | !msg list | !msg show <number> | !msg delete <number>
 - !question [word]
+- !xkcd <number> | !xkcd <word> | !xkcd last
 - CTCP queries: VERSION, PING <(milli)seconds>, SOURCE, URL, FINGER, TIME, CLIENTINFO, USERINFO
 - Private chat: HELP, INFO
 

@@ -1707,6 +1707,130 @@ function GetQuestionAnswer ($sQAWord)
 	}
 }
 /***********************************************/
+function XkcdLine ($iXkcd)
+/***********************************************/
+{
+	$query = "SELECT xkcd_title FROM `xkcd` WHERE xkcd_nr='" . $iXkcd . "';";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	if (mysqli_num_rows ($result) == 0)
+	{
+		return (''); /*** No not return FALSE here. Just ''. ***/
+	} else {
+		$row = mysqli_fetch_assoc ($result);
+		return ($row['xkcd_title'] . ' http://xkcd.com/' . $iXkcd . '/');
+	}
+}
+/***********************************************/
+function XkcdShow ($sRecipient, $iXkcd, $sXkcd)
+/***********************************************/
+{
+	$iXkcdLastO = XkcdUpdate();
+
+	$sResult = ''; $iTooMany = 0;
+	if (strcmp ($sXkcd, "last") == 0)
+	{
+		$sResult = XkcdLine ($iXkcdLastO);
+	} else if ($sXkcd != '') {
+		$query = "SELECT xkcd_nr FROM `xkcd` WHERE (xkcd_title LIKE '%" .
+			$sXkcd . "%') OR (xkcd_alt LIKE '%" . $sXkcd . "%');";
+		$result = mysqli_query ($GLOBALS['link'], $query);
+		if (mysqli_num_rows ($result) > 0)
+		{
+			while ($row = mysqli_fetch_assoc ($result))
+			{
+				$xkcd_nr = $row['xkcd_nr'];
+				$sAdd = '';
+				if ($sResult != '') { $sAdd = ' | '; }
+				$sAdd .= XkcdLine ($xkcd_nr);
+				if (strlen ($sResult . $sAdd) <= 400)
+				{
+					$sResult .= $sAdd;
+				} else {
+					$iTooMany = 1;
+				}
+			}
+		} else { /*** Do nothing. ***/ }
+	} else if ($iXkcd != 0) {
+		$sResult = XkcdLine ($iXkcd);
+	}
+
+	if ($sResult != '')
+	{
+		Say ($sRecipient, ColorThis ('xkcd') . ' ' . $sResult);
+		if ($iTooMany == 1)
+		{
+			Say ($sRecipient, '(There are more hits. Be more specific to narrow' .
+				' your search results.)');
+		}
+	} else {
+		Say ($sRecipient, ColorThis ('xkcd') . ' No results.');
+	}
+}
+/***********************************************/
+function XkcdUpdate ()
+/***********************************************/
+{
+	/*** Get the last number: on-line. ***/
+	$jsn = GetPage ('http://xkcd.com/info.0.json', 0);
+	$arResult = json_decode ($jsn, TRUE);
+	if (isset ($arResult['num']))
+	{
+		$iXkcdLastO = intval ($arResult['num']);
+	} else { $iXkcdLastO = 0; }
+
+	/*** Get the last number: database. ***/
+	$query = "SELECT MAX(xkcd_nr) AS last FROM `xkcd`;";
+	$result = mysqli_query ($GLOBALS['link'], $query);
+	$row = mysqli_fetch_assoc ($result);
+	$iXkcdLastD = intval ($row['last']);
+
+	/*** Get more comics. ***/
+	if ($iXkcdLastD < $iXkcdLastO)
+	{
+		/*** This takes a while. ***/
+		if ($iXkcdLastD == 0)
+		{
+			print ('[ INFO ] First call of XkcdUpdate(). Retrieving ' .
+				$iXkcdLastO . ' comics. This can take five minutes or more!' . "\n");
+		}
+
+		for ($iXkcdNr = $iXkcdLastD + 1; $iXkcdNr <= $iXkcdLastO; $iXkcdNr++)
+		{
+			if ($iXkcdNr != 404) /*** There is no comic number 404. ***/
+			{
+				$sURL = 'http://xkcd.com/' . $iXkcdNr . '/info.0.json';
+				$jsn = GetPage ($sURL, 0);
+				$arResult = json_decode ($jsn, TRUE);
+				if ((isset ($arResult['num'])) &&
+					(isset ($arResult['title'])) &&
+					(isset ($arResult['alt'])))
+				{
+					$iXkcdNum = intval ($arResult['num']);
+					$sXkcdT = $arResult['title'];
+					$sXkcdT = mysqli_real_escape_string ($GLOBALS['link'], $sXkcdT);
+					$sXkcdAlt = $arResult['alt'];
+					$sXkcdAlt = mysqli_real_escape_string ($GLOBALS['link'], $sXkcdAlt);
+
+					$query = "INSERT INTO `xkcd` VALUES (NULL, '" .
+						$iXkcdNum . "', '" .
+						$sXkcdT . "', '" .
+						$sXkcdAlt . "');";
+					$result = mysqli_query ($GLOBALS['link'], $query);
+					if ($result == FALSE)
+					{
+						print ('[ WARN ] This query failed (' .
+							mysqli_error ($GLOBALS['link']) . '): ' . $query . "\n");
+					}
+				} else {
+					print ('[ WARN ] Strange xkcd result for: ' . $sURL . "\n");
+				}
+			}
+		}
+	}
+
+	return ($iXkcdLastO);
+}
+/***********************************************/
 
 require_once ('steamlug-bot_settings.php');
 require_once ('steamlug-bot_def.php');
@@ -1720,6 +1844,12 @@ set_time_limit (0); /*** Do not limit the execution time. ***/
 
 $oldtime = time();
 $oldqtime = time();
+
+/*
+ * This needs to be here (too), because the first time it can take five
+ * minutes or more, which would cause a PING timeout if connected.
+ */
+XkcdUpdate();
 
 do {
 	$iJoined = 0;
@@ -2354,6 +2484,31 @@ do {
 												$GLOBALS['qa_winnick'] = '';
 											}
 										}
+									}
+									break;
+								case '!xkcd':
+									if (isset ($exsay[1]))
+									{
+										$iXkcd = 0; $sXkcd = '';
+										if (is_numeric ($exsay[1]))
+										{
+											$iXkcd = intval ($exsay[1]);
+										} else if (strcmp ($exsay[1], "last") == 0) {
+											$sXkcd = "last";
+										} else {
+											$sXkcd = FixString ($exsay[1]);
+										}
+										if ($iXkcd == 404)
+										{
+											Say ($sRecipient, 'Randall Munroe deliberately did' .
+												' not create comic number 404. (404 is the "Not' .
+												' Found" HTTP response status code)');
+										} else {
+											XkcdShow ($sRecipient, $iXkcd, $sXkcd);
+										}
+									} else {
+										Say ($sRecipient, 'Usage: !xkcd <number>' .
+											' | !xkcd <word> | !xkcd last');
 									}
 									break;
 							}
