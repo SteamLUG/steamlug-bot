@@ -22,7 +22,11 @@ function Connect ()
 		{
 			sleep (3); /*** Wait 3 seconds. ***/
 			$iTries++;
-			if ($iTries == 10)
+			if ($iTries % 10 == 0)
+			{
+				print ('[WARNING] Could not connect!' . "\n");
+			}
+			if ($iTries == 1250)
 			{
 				print ('[FAILED] Could not connect!' . "\n");
 				exit();
