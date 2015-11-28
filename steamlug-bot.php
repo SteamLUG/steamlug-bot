@@ -2581,5 +2581,7 @@ do {
 		}
 		usleep (1000);
 	}
+	fclose ($GLOBALS['socket']);
+	$GLOBALS['socket'] = FALSE;
 } while (1);
 ?>
