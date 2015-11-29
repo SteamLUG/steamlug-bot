@@ -510,6 +510,7 @@ function CapReq ()
 		}
 		usleep (1000);
 	} while ($iGotAck == 0);
+	print ("[ INFO ] Identified with server.\n")
 }
 /***********************************************/
 function SetCustomURL ($sNick, $sCustomURL)
@@ -1949,6 +1950,7 @@ do {
 				foreach ($arUsers as $sNick) { AddUser ($sChannel, $sNick); }
 			} else if ($ex[1] == '366') { /*** End of user listing. ***/
 				$iJoined = 2;
+				print("[ INFO ] Connection complete, begin normal operation.\n");
 			} else if ($ex[0] == 'PING') {
 				$PingTimeout = $currenttime;
 				Write ('PONG ' . substr ($sString, 5));
