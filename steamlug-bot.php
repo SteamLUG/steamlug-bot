@@ -1864,8 +1864,9 @@ do {
 	Nick ($GLOBALS['botname']);
 	User ($GLOBALS['botname']);
 	$sString = '';
+	$currenttime = $PingTimeout = time();
 
-	while (feof ($GLOBALS['socket']) == FALSE)
+	while ((feof ($GLOBALS['socket']) == FALSE) && ($currenttime < $PingTimeout + 360))
 	{
 		pcntl_signal_dispatch(); /*** For ControlC(). ***/
 
@@ -1949,6 +1950,7 @@ do {
 			} else if ($ex[1] == '366') { /*** End of user listing. ***/
 				$iJoined = 2;
 			} else if ($ex[0] == 'PING') {
+				$PingTimeout = $currenttime;
 				Write ('PONG ' . substr ($sString, 5));
 			} else if ($iJoined == 2) {
 				$sNick = substr ($sString, 1, strpos ($sString, '!') - 1);
