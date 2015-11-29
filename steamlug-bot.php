@@ -510,7 +510,7 @@ function CapReq ()
 		}
 		usleep (1000);
 	} while ($iGotAck == 0);
-	print ("[ INFO ] Identified with server.\n")
+	print ("[ INFO ] Identified with server.\n");
 }
 /***********************************************/
 function SetCustomURL ($sNick, $sCustomURL)
