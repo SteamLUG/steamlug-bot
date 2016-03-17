@@ -22,7 +22,5 @@
 
 	NewHumbleTitlesToMySQL();
 
-	GetLog ($GLOBALS['getlog_done']);
-
 	mysqli_close ($GLOBALS['link']);
 ?>
