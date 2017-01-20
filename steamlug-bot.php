@@ -1862,7 +1862,7 @@ do {
 	$sString = '';
 	$currenttime = $PingTimeout = time();
 
-	while ((feof ($GLOBALS['socket']) == FALSE) && ($currenttime < $PingTimeout + 360))
+	while ((feof ($GLOBALS['socket']) == FALSE) && ($currenttime < $PingTimeout + 600))
 	{
 		pcntl_signal_dispatch(); /*** For ControlC(). ***/
 
