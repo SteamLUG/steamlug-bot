@@ -1933,7 +1933,7 @@ do {
 				}
 				if ($GLOBALS['hascloak'] == 0) { $iNoCloak = 1; }
 			} else if (($iJoined == 0) && (($ex[1] == '396') || ($iNoCloak == 1))) {
-				CapReq();
+				/*** CapReq(); ***/
 				Write ('JOIN ' . $GLOBALS['channel']);
 				$iJoined = 1;
 			} else if ($ex[1] == '353') { /*** User listing. ***/
