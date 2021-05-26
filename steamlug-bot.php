@@ -461,6 +461,15 @@ function GetPart ($sString, $iPart)
 	return ($sPart);
 }
 /***********************************************/
+function GetFirst ($sString)
+/***********************************************/
+{
+	$msgArray = explode(' ',trim($sString));
+
+	return($msgArray[0]);
+}
+
+/***********************************************/
 function LogLine ($sNick, $sIdent, $sHost, $sCommand,
 	$sChannel, $sPerson, $iIdentified, $sText)
 /***********************************************/
@@ -1966,14 +1975,11 @@ do {
 							$sRecipient = $ex[2];
 						}
 						$sSaid = substr (GetPart ($sString, 4), 1);
-						switch (substr (GetPart ($sString, 4), 1, 1))
-						{
-							case '+': $iIdentified = 1; break;
-							case '-': $iIdentified = 0; break;
-							default:
-								$iIdentified = 0; /*** Fallback. ***/
-								print ('[ WARN ] Unknown +/- status: ' . $sString);
-								break;
+						if (strstr(GetFirst ($sString), '@user/'))
+ 						{
+							$iIdentified = 1;
+						} else {
+							$iIdentified = 0;
 						}
 						LogLine ($sNick, $sIdent, $sHost,
 							$ex[1], $sRecipient, '', $iIdentified, $sSaid);
