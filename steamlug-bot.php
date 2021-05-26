@@ -1965,7 +1965,7 @@ do {
 						} else {
 							$sRecipient = $ex[2];
 						}
-						$sSaid = substr (GetPart ($sString, 4), 2);
+						$sSaid = substr (GetPart ($sString, 4), 1);
 						switch (substr (GetPart ($sString, 4), 1, 1))
 						{
 							case '+': $iIdentified = 1; break;
